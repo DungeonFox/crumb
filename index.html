@@ -203,15 +203,13 @@ END README
           <rect data-region="panels" x="0" y="430" width="1000" height="880"></rect>
           <rect data-region="footer" x="0" y="1310" width="1000" height="90"></rect>
         </svg>
-        <div class="card-text-svg-layer" aria-hidden="true">
-          <svg class="card-text-svg" data-role="card-title-svg" aria-hidden="true"></svg>
-          <svg class="card-text-svg" data-role="card-text-svg" aria-hidden="true"></svg>
-          <svg class="card-text-svg" data-role="card-task-svg" aria-hidden="true"></svg>
-        </div>
         <div class="tcg-card__content">
           <div class="card-header">
             <div class="card-header__title">
-              <span data-role="card-title" class="card-text-source"></span>
+              <span data-role="card-title" class="card-text-host">
+                <span class="card-text-source"></span>
+                <svg class="card-text-svg" data-role="card-title-svg" aria-hidden="true"></svg>
+              </span>
               <span class="card-header__status svg-label-host">
                 <span data-role="play-mini" class="card-text-source">stopped</span>
                 <svg class="ui-label-svg" data-role="play-mini-svg" aria-hidden="true"></svg>
@@ -361,7 +359,10 @@ END README
         <h2>
           <span class="panel-title">
             <span class="svg-label-host">
-              <span data-role="card-text" class="card-text-source">Animation Recipe Builder</span>
+              <span data-role="card-text" class="card-text-host">
+                <span class="card-text-source">Animation Recipe Builder</span>
+                <svg class="card-text-svg" data-role="card-text-svg" aria-hidden="true"></svg>
+              </span>
               <svg class="ui-label-svg" data-role="panel-recipe-svg" aria-hidden="true"></svg>
             </span>
             <span class="mini svg-label-host" data-role="rec-root-mini">
@@ -450,7 +451,10 @@ END README
       <h2>
         <span class="panel-title">
           <span class="svg-label-host">
-            <span data-role="card-task" class="card-text-source">Tasker Manager</span>
+            <span data-role="card-task" class="card-text-host">
+              <span class="card-text-source">Tasker Manager</span>
+              <svg class="card-text-svg" data-role="card-task-svg" aria-hidden="true"></svg>
+            </span>
             <svg class="ui-label-svg" data-role="panel-tasker-svg" aria-hidden="true"></svg>
           </span>
           <span class="mini svg-label-host" data-role="task-root-mini">
