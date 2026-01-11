@@ -245,8 +245,20 @@ END README
             <div class="card-image__frame">
               <canvas data-role="preview-canvas" width="256" height="256"></canvas>
               <div class="row card-image__meta" style="justify-content:space-between;">
-                <div class="small muted">Frame: <span data-role="frame-info" class="mono"></span></div>
-                <div class="small muted">Size: <span data-role="size-info" class="mono"></span></div>
+                <div class="small muted">
+                  <span class="svg-label-host">
+                    <span class="card-text-source">Frame:</span>
+                    <svg class="ui-label-svg" data-role="frame-label-svg" aria-hidden="true"></svg>
+                  </span>
+                  <span data-role="frame-info" class="mono"></span>
+                </div>
+                <div class="small muted">
+                  <span class="svg-label-host">
+                    <span class="card-text-source">Size:</span>
+                    <svg class="ui-label-svg" data-role="size-label-svg" aria-hidden="true"></svg>
+                  </span>
+                  <span data-role="size-info" class="mono"></span>
+                </div>
               </div>
             </div>
           </div>
@@ -260,7 +272,10 @@ END README
                 <span class="card-text-source">Template Editor</span>
                 <svg class="ui-label-svg" data-role="panel-template-svg" aria-hidden="true"></svg>
               </span>
-              <span class="mini" data-role="tpl-root-mini"></span>
+              <span class="mini svg-label-host" data-role="tpl-root-mini">
+                <span class="card-text-source"></span>
+                <svg class="ui-label-svg" data-role="tpl-root-mini-svg" aria-hidden="true"></svg>
+              </span>
             </span>
             <span class="kbar">
               <input data-role="file-template" type="file" accept=".json,application/json" />
@@ -273,14 +288,20 @@ END README
           <div class="content" data-role="template-panel">
             <div class="grid2">
               <div class="field">
-                <label>tileW / tileH</label>
+                <label class="svg-label-host">
+                  <span class="card-text-source">tileW / tileH</span>
+                  <svg class="ui-label-svg" data-role="label-tile-wh-svg" aria-hidden="true"></svg>
+                </label>
                 <div class="row">
                   <input data-role="tpl-tile-w" type="number" min="1" step="1" />
                   <input data-role="tpl-tile-h" type="number" min="1" step="1" />
                 </div>
               </div>
               <div class="field">
-                <label>gridW / gridH (output size = tileW×gridW by tileH×gridH)</label>
+                <label class="svg-label-host">
+                  <span class="card-text-source">gridW / gridH (output size = tileW×gridW by tileH×gridH)</span>
+                  <svg class="ui-label-svg" data-role="label-grid-wh-svg" aria-hidden="true"></svg>
+                </label>
                 <div class="row">
                   <input data-role="tpl-grid-w" type="number" min="1" step="1" />
                   <input data-role="tpl-grid-h" type="number" min="1" step="1" />
@@ -343,7 +364,10 @@ END README
               <span data-role="card-text" class="card-text-source">Animation Recipe Builder</span>
               <svg class="ui-label-svg" data-role="panel-recipe-svg" aria-hidden="true"></svg>
             </span>
-            <span class="mini" data-role="rec-root-mini"></span>
+            <span class="mini svg-label-host" data-role="rec-root-mini">
+              <span class="card-text-source"></span>
+              <svg class="ui-label-svg" data-role="rec-root-mini-svg" aria-hidden="true"></svg>
+            </span>
           </span>
           <span class="kbar">
             <input data-role="file-recipe" type="file" accept=".json,application/json" />
@@ -355,7 +379,10 @@ END README
         </h2>
         <div class="content" data-role="recipe-panel">
           <div class="field">
-            <label>Recipe → Template Root</label>
+            <label class="svg-label-host">
+              <span class="card-text-source">Recipe → Template Root</span>
+              <svg class="ui-label-svg" data-role="label-recipe-root-svg" aria-hidden="true"></svg>
+            </label>
             <select data-role="recipe-template-select"></select>
             <div class="small muted" style="margin-top:6px">
               This recipe renders using the selected Template root node.
@@ -405,7 +432,10 @@ END README
 
           <div class="hr"></div>
           <div class="field">
-            <label>Selected Layer Overrides (by FrameSlot)</label>
+            <label class="svg-label-host">
+              <span class="card-text-source">Selected Layer Overrides (by FrameSlot)</span>
+              <svg class="ui-label-svg" data-role="label-layer-overrides-svg" aria-hidden="true"></svg>
+            </label>
             <div class="small muted">Override rect and/or dx/dy/opacity for specific FrameSlots.</div>
             <div style="height:8px"></div>
             <div class="list" data-role="override-list"></div>
@@ -423,7 +453,10 @@ END README
             <span data-role="card-task" class="card-text-source">Tasker Manager</span>
             <svg class="ui-label-svg" data-role="panel-tasker-svg" aria-hidden="true"></svg>
           </span>
-          <span class="mini" data-role="task-root-mini"></span>
+          <span class="mini svg-label-host" data-role="task-root-mini">
+            <span class="card-text-source"></span>
+            <svg class="ui-label-svg" data-role="task-root-mini-svg" aria-hidden="true"></svg>
+          </span>
         </span>
         <span class="kbar">
           <input data-role="file-tasker" type="file" accept=".json,application/json" />
@@ -458,7 +491,10 @@ END README
         <div class="list" data-role="task-list"></div>
         <div class="hr"></div>
         <div class="field">
-          <label>Selected Task Editor</label>
+          <label class="svg-label-host">
+            <span class="card-text-source">Selected Task Editor</span>
+            <svg class="ui-label-svg" data-role="label-task-editor-svg" aria-hidden="true"></svg>
+          </label>
           <div class="small muted">Edit name and commands (as JSON array). Commands are executed sequentially.</div>
           <div class="row" style="gap:8px; margin-top:6px">
             <input data-role="task-name-input" type="text" placeholder="Task name" style="flex:1" />
@@ -476,16 +512,31 @@ END README
         <!-- Pop‑out viewer geometry controls -->
         <div class="hr"></div>
         <div class="field">
-          <label>Pop‑out Viewer Geometry</label>
+          <label class="svg-label-host">
+            <span class="card-text-source">Pop‑out Viewer Geometry</span>
+            <svg class="ui-label-svg" data-role="label-popout-geometry-svg" aria-hidden="true"></svg>
+          </label>
           <div class="small muted">Configure the default size and screen position of the pop‑out viewer. These values are used when opening a new viewer and can be applied to an open viewer at any time.</div>
           <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:6px">
-            <label style="font-size:11px">W</label>
+            <label class="svg-label-host" style="font-size:11px">
+              <span class="card-text-source">W</span>
+              <svg class="ui-label-svg" data-role="label-popout-w-svg" aria-hidden="true"></svg>
+            </label>
             <input data-role="popout-width" type="number" min="100" step="10" style="width:70px" aria-label="Pop-out width" />
-            <label style="font-size:11px">H</label>
+            <label class="svg-label-host" style="font-size:11px">
+              <span class="card-text-source">H</span>
+              <svg class="ui-label-svg" data-role="label-popout-h-svg" aria-hidden="true"></svg>
+            </label>
             <input data-role="popout-height" type="number" min="100" step="10" style="width:70px" aria-label="Pop-out height" />
-            <label style="font-size:11px">Left</label>
+            <label class="svg-label-host" style="font-size:11px">
+              <span class="card-text-source">Left</span>
+              <svg class="ui-label-svg" data-role="label-popout-left-svg" aria-hidden="true"></svg>
+            </label>
             <input data-role="popout-left" type="number" step="10" style="width:70px" aria-label="Pop-out left" />
-            <label style="font-size:11px">Top</label>
+            <label class="svg-label-host" style="font-size:11px">
+              <span class="card-text-source">Top</span>
+              <svg class="ui-label-svg" data-role="label-popout-top-svg" aria-hidden="true"></svg>
+            </label>
             <input data-role="popout-top" type="number" step="10" style="width:70px" aria-label="Pop-out top" />
             <button data-role="popout-geometry-apply" class="primary svg-label-host">
               <span class="card-text-source">Apply</span>
@@ -502,7 +553,10 @@ END README
         <div class="toggle">
           <label title="Recompute IDs from canonical node content and rewrite references.">
             <input data-role="deterministic-ids" type="checkbox" checked />
-            Deterministic IDs
+            <span class="svg-label-host">
+              <span class="card-text-source">Deterministic IDs</span>
+              <svg class="ui-label-svg" data-role="label-deterministic-ids-svg" aria-hidden="true"></svg>
+            </span>
           </label>
         </div>
         <button data-role="btn-rehash" class="primary svg-label-host" title="Recompute IDs topologically; rewrite references; clears caches.">
@@ -527,11 +581,17 @@ END README
           <span class="card-text-source">Registry Manifests</span>
           <svg class="ui-label-svg" data-role="panel-registry-svg" aria-hidden="true"></svg>
         </span>
-        <span class="mini">merged view</span>
+        <span class="mini svg-label-host">
+          <span class="card-text-source">merged view</span>
+          <svg class="ui-label-svg" data-role="panel-registry-mini-svg" aria-hidden="true"></svg>
+        </span>
       </h2>
       <div class="content rightStack">
         <div class="field">
-          <label>Registry Manifests (merged view)</label>
+          <label class="svg-label-host">
+            <span class="card-text-source">Registry Manifests (merged view)</span>
+            <svg class="ui-label-svg" data-role="label-registry-merged-svg" aria-hidden="true"></svg>
+          </label>
           <textarea data-role="merged-json" spellcheck="false"></textarea>
           <div class="row">
             <button data-role="btn-copy-merged" class="svg-label-host">
@@ -558,7 +618,10 @@ END README
       </h2>
       <div class="content rightStack">
         <div class="field">
-          <label>Log</label>
+          <label class="svg-label-host">
+            <span class="card-text-source">Log</span>
+            <svg class="ui-label-svg" data-role="label-log-svg" aria-hidden="true"></svg>
+          </label>
           <div data-role="log" class="log"></div>
         </div>
       </div>
@@ -787,8 +850,8 @@ END README
     if(typeof window.renderCardTextSvg === "function"){
       window.renderCardTextSvg(card);
     }
-    if(typeof window.renderCardUiLabelsSvg === "function"){
-      window.renderCardUiLabelsSvg(card);
+    if(typeof window.renderUiLabelsSvg === "function"){
+      window.renderUiLabelsSvg(card);
     }
 
     // Keep adjacent panels aligned.
