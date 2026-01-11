@@ -682,6 +682,10 @@ END README
     layoutTarget.style.setProperty("--image-pad", `${10 * baseScale}px`);
     layoutTarget.style.setProperty("--image-gap", `${6 * baseScale}px`);
 
+    if(typeof window.renderCardTextSvg === "function"){
+      window.renderCardTextSvg(card);
+    }
+
     // Keep adjacent panels aligned.
     if(typeof window.updateControlsPosition === "function"){
       window.updateControlsPosition(card);
