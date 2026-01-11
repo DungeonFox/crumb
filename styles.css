@@ -129,7 +129,7 @@
     align-items:center;
   }
   .tcg-card__layout{
-    position:absolute;
+    position:relative;
     left:var(--layout-x, 0px);
     top:var(--layout-y, 0px);
     width:var(--layout-w, 100%);
