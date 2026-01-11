@@ -207,15 +207,33 @@ END README
           <div class="card-header">
             <div class="card-header__title">
               <span data-role="card-title" class="card-text-source"></span>
-              <span data-role="play-mini" class="card-header__status">stopped</span>
+              <span class="card-header__status svg-label-host">
+                <span data-role="play-mini" class="card-text-source">stopped</span>
+                <svg class="ui-label-svg" data-role="play-mini-svg" aria-hidden="true"></svg>
+              </span>
             </div>
             <div class="card-header__badge card-header__controls">
-              <button data-role="btn-play" class="card-control" type="button" title="Play/Pause preview" aria-label="Play or pause preview" aria-pressed="false">▶</button>
-              <button data-role="btn-step" class="card-control" type="button" title="Step preview" aria-label="Step preview frame">⏭</button>
-              <button data-role="btn-reset" class="card-control" type="button" title="Reset preview" aria-label="Reset preview">⟲</button>
+              <button data-role="btn-play" class="card-control svg-label-host" type="button" title="Play/Pause preview" aria-label="Play or pause preview" aria-pressed="false">
+                <span class="card-text-source">▶</span>
+                <svg class="ui-label-svg" data-role="btn-play-svg" aria-hidden="true"></svg>
+              </button>
+              <button data-role="btn-step" class="card-control svg-label-host" type="button" title="Step preview" aria-label="Step preview frame">
+                <span class="card-text-source">⏭</span>
+                <svg class="ui-label-svg" data-role="btn-step-svg" aria-hidden="true"></svg>
+              </button>
+              <button data-role="btn-reset" class="card-control svg-label-host" type="button" title="Reset preview" aria-label="Reset preview">
+                <span class="card-text-source">⟲</span>
+                <svg class="ui-label-svg" data-role="btn-reset-svg" aria-hidden="true"></svg>
+              </button>
               <span class="card-header__divider" aria-hidden="true"></span>
-              <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="registry" aria-pressed="true" title="Toggle registry panel" aria-label="Toggle registry panel">🗂</button>
-              <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="log" aria-pressed="true" title="Toggle log panel" aria-label="Toggle log panel">📜</button>
+              <button class="card-control card-control--toggle is-active svg-label-host" type="button" data-panel-toggle="registry" aria-pressed="true" title="Toggle registry panel" aria-label="Toggle registry panel">
+                <span class="card-text-source">🗂</span>
+                <svg class="ui-label-svg" data-role="btn-toggle-registry-svg" aria-hidden="true"></svg>
+              </button>
+              <button class="card-control card-control--toggle is-active svg-label-host" type="button" data-panel-toggle="log" aria-pressed="true" title="Toggle log panel" aria-label="Toggle log panel">
+                <span class="card-text-source">📜</span>
+                <svg class="ui-label-svg" data-role="btn-toggle-log-svg" aria-hidden="true"></svg>
+              </button>
             </div>
           </div>
           <div class="card-text-svg-layer" aria-hidden="true">
@@ -237,10 +255,19 @@ END README
           <!-- TEMPLATE -->
           <section class="panel">
           <h2>
-            <span>Template Editor <span class="mini" data-role="tpl-root-mini"></span></span>
+            <span class="panel-title">
+              <span class="svg-label-host">
+                <span class="card-text-source">Template Editor</span>
+                <svg class="ui-label-svg" data-role="panel-template-svg" aria-hidden="true"></svg>
+              </span>
+              <span class="mini" data-role="tpl-root-mini"></span>
+            </span>
             <span class="kbar">
               <input data-role="file-template" type="file" accept=".json,application/json" />
-              <button data-role="btn-save-template">Save template.json</button>
+              <button data-role="btn-save-template" class="svg-label-host">
+                <span class="card-text-source">Save template.json</span>
+                <svg class="ui-label-svg" data-role="btn-save-template-svg" aria-hidden="true"></svg>
+              </button>
             </span>
           </h2>
           <div class="content" data-role="template-panel">
@@ -269,8 +296,14 @@ END README
               <div class="small muted">IDs are stable refs. Rects are shared across layers.</div>
             </div>
             <div class="row">
-              <button data-role="btn-add-rect">+ Rect</button>
-              <button data-role="btn-del-rect" class="danger">Delete Selected</button>
+              <button data-role="btn-add-rect" class="svg-label-host">
+                <span class="card-text-source">+ Rect</span>
+                <svg class="ui-label-svg" data-role="btn-add-rect-svg" aria-hidden="true"></svg>
+              </button>
+              <button data-role="btn-del-rect" class="danger svg-label-host">
+                <span class="card-text-source">Delete Selected</span>
+                <svg class="ui-label-svg" data-role="btn-del-rect-svg" aria-hidden="true"></svg>
+              </button>
             </div>
           </div>
 
@@ -285,8 +318,14 @@ END README
               <div class="small muted">Recipe overrides are keyed by FrameSlot IDs.</div>
             </div>
             <div class="row">
-              <button data-role="btn-add-frame">+ FrameSlot</button>
-              <button data-role="btn-del-frame" class="danger">Delete Selected</button>
+              <button data-role="btn-add-frame" class="svg-label-host">
+                <span class="card-text-source">+ FrameSlot</span>
+                <svg class="ui-label-svg" data-role="btn-add-frame-svg" aria-hidden="true"></svg>
+              </button>
+              <button data-role="btn-del-frame" class="danger svg-label-host">
+                <span class="card-text-source">Delete Selected</span>
+                <svg class="ui-label-svg" data-role="btn-del-frame-svg" aria-hidden="true"></svg>
+              </button>
             </div>
           </div>
 
@@ -299,10 +338,19 @@ END README
         <!-- RECIPE -->
         <section class="panel">
         <h2>
-          <span><span data-role="card-text" class="card-text-source">Animation Recipe Builder</span><span class="mini" data-role="rec-root-mini"></span></span>
+          <span class="panel-title">
+            <span class="svg-label-host">
+              <span data-role="card-text" class="card-text-source">Animation Recipe Builder</span>
+              <svg class="ui-label-svg" data-role="panel-recipe-svg" aria-hidden="true"></svg>
+            </span>
+            <span class="mini" data-role="rec-root-mini"></span>
+          </span>
           <span class="kbar">
             <input data-role="file-recipe" type="file" accept=".json,application/json" />
-            <button data-role="btn-save-recipe">Save animation.json</button>
+            <button data-role="btn-save-recipe" class="svg-label-host">
+              <span class="card-text-source">Save animation.json</span>
+              <svg class="ui-label-svg" data-role="btn-save-recipe-svg" aria-hidden="true"></svg>
+            </button>
           </span>
         </h2>
         <div class="content" data-role="recipe-panel">
@@ -323,7 +371,10 @@ END README
             </div>
             <div class="row">
               <input data-role="file-asset" type="file" accept="image/*" multiple />
-              <button data-role="btn-add-asset">+ Empty Asset</button>
+              <button data-role="btn-add-asset" class="svg-label-host">
+                <span class="card-text-source">+ Empty Asset</span>
+                <svg class="ui-label-svg" data-role="btn-add-asset-svg" aria-hidden="true"></svg>
+              </button>
             </div>
           </div>
 
@@ -338,8 +389,14 @@ END README
               <div class="small muted">Each layer samples an Asset and draws a Rect, with per-frame overrides.</div>
             </div>
             <div class="row">
-              <button data-role="btn-add-layer">+ Layer</button>
-              <button data-role="btn-del-layer" class="danger">Delete Selected</button>
+              <button data-role="btn-add-layer" class="svg-label-host">
+                <span class="card-text-source">+ Layer</span>
+                <svg class="ui-label-svg" data-role="btn-add-layer-svg" aria-hidden="true"></svg>
+              </button>
+              <button data-role="btn-del-layer" class="danger svg-label-host">
+                <span class="card-text-source">Delete Selected</span>
+                <svg class="ui-label-svg" data-role="btn-del-layer-svg" aria-hidden="true"></svg>
+              </button>
             </div>
           </div>
 
@@ -361,11 +418,23 @@ END README
       <div class="card-task">
       <section class="panel">
       <h2>
-        <span><span data-role="card-task" class="card-text-source">Tasker Manager</span><span class="mini" data-role="task-root-mini"></span></span>
+        <span class="panel-title">
+          <span class="svg-label-host">
+            <span data-role="card-task" class="card-text-source">Tasker Manager</span>
+            <svg class="ui-label-svg" data-role="panel-tasker-svg" aria-hidden="true"></svg>
+          </span>
+          <span class="mini" data-role="task-root-mini"></span>
+        </span>
         <span class="kbar">
           <input data-role="file-tasker" type="file" accept=".json,application/json" />
-          <button data-role="btn-save-tasks">Save tasks.json</button>
-          <button data-role="btn-run-tasks" class="primary">Run Tasks</button>
+          <button data-role="btn-save-tasks" class="svg-label-host">
+            <span class="card-text-source">Save tasks.json</span>
+            <svg class="ui-label-svg" data-role="btn-save-tasks-svg" aria-hidden="true"></svg>
+          </button>
+          <button data-role="btn-run-tasks" class="primary svg-label-host">
+            <span class="card-text-source">Run Tasks</span>
+            <svg class="ui-label-svg" data-role="btn-run-tasks-svg" aria-hidden="true"></svg>
+          </button>
         </span>
       </h2>
       <div class="content" data-role="task-panel">
@@ -375,8 +444,14 @@ END README
             <div class="small muted">Define tasks that control the pop‑out viewer.</div>
           </div>
           <div class="row">
-            <button data-role="btn-add-task">+ Task</button>
-            <button data-role="btn-del-task" class="danger">Delete Selected</button>
+            <button data-role="btn-add-task" class="svg-label-host">
+              <span class="card-text-source">+ Task</span>
+              <svg class="ui-label-svg" data-role="btn-add-task-svg" aria-hidden="true"></svg>
+            </button>
+            <button data-role="btn-del-task" class="danger svg-label-host">
+              <span class="card-text-source">Delete Selected</span>
+              <svg class="ui-label-svg" data-role="btn-del-task-svg" aria-hidden="true"></svg>
+            </button>
           </div>
         </div>
         <div style="height:8px"></div>
@@ -391,7 +466,10 @@ END README
           <div style="height:6px"></div>
           <textarea data-role="task-commands-input" placeholder='[{"cmd":"play"}]'></textarea>
           <div class="row" style="margin-top:6px; justify-content:flex-end">
-            <button data-role="btn-update-task">Update Task</button>
+            <button data-role="btn-update-task" class="svg-label-host">
+              <span class="card-text-source">Update Task</span>
+              <svg class="ui-label-svg" data-role="btn-update-task-svg" aria-hidden="true"></svg>
+            </button>
           </div>
         </div>
 
@@ -409,7 +487,10 @@ END README
             <input data-role="popout-left" type="number" step="10" style="width:70px" aria-label="Pop-out left" />
             <label style="font-size:11px">Top</label>
             <input data-role="popout-top" type="number" step="10" style="width:70px" aria-label="Pop-out top" />
-            <button data-role="popout-geometry-apply" class="primary">Apply</button>
+            <button data-role="popout-geometry-apply" class="primary svg-label-host">
+              <span class="card-text-source">Apply</span>
+              <svg class="ui-label-svg" data-role="popout-geometry-apply-svg" aria-hidden="true"></svg>
+            </button>
           </div>
         </div>
           </div>
@@ -424,16 +505,28 @@ END README
             Deterministic IDs
           </label>
         </div>
-        <button data-role="btn-rehash" class="primary" title="Recompute IDs topologically; rewrite references; clears caches.">Recompute IDs</button>
-        <button data-role="btn-popout" class="primary">Pop‑out Viewer</button>
-        <button data-role="btn-export-atlas" class="primary">Export Atlas PNG + JSON</button>
+        <button data-role="btn-rehash" class="primary svg-label-host" title="Recompute IDs topologically; rewrite references; clears caches.">
+          <span class="card-text-source">Recompute IDs</span>
+          <svg class="ui-label-svg" data-role="btn-rehash-svg" aria-hidden="true"></svg>
+        </button>
+        <button data-role="btn-popout" class="primary svg-label-host">
+          <span class="card-text-source">Pop‑out Viewer</span>
+          <svg class="ui-label-svg" data-role="btn-popout-svg" aria-hidden="true"></svg>
+        </button>
+        <button data-role="btn-export-atlas" class="primary svg-label-host">
+          <span class="card-text-source">Export Atlas PNG + JSON</span>
+          <svg class="ui-label-svg" data-role="btn-export-atlas-svg" aria-hidden="true"></svg>
+        </button>
       </div>
     </div>
     </div>
   <aside class="card-adjacent" data-card-id="" aria-label="Supplemental preview panels">
     <section class="panel side-panel" data-panel="registry" data-card-id="">
       <h2>
-        <span>Registry Manifests</span>
+        <span class="svg-label-host">
+          <span class="card-text-source">Registry Manifests</span>
+          <svg class="ui-label-svg" data-role="panel-registry-svg" aria-hidden="true"></svg>
+        </span>
         <span class="mini">merged view</span>
       </h2>
       <div class="content rightStack">
@@ -441,8 +534,14 @@ END README
           <label>Registry Manifests (merged view)</label>
           <textarea data-role="merged-json" spellcheck="false"></textarea>
           <div class="row">
-            <button data-role="btn-copy-merged">Copy</button>
-            <button data-role="btn-load-merged">Load (Merged JSON)</button>
+            <button data-role="btn-copy-merged" class="svg-label-host">
+              <span class="card-text-source">Copy</span>
+              <svg class="ui-label-svg" data-role="btn-copy-merged-svg" aria-hidden="true"></svg>
+            </button>
+            <button data-role="btn-load-merged" class="svg-label-host">
+              <span class="card-text-source">Load (Merged JSON)</span>
+              <svg class="ui-label-svg" data-role="btn-load-merged-svg" aria-hidden="true"></svg>
+            </button>
           </div>
           <div class="small muted">
             Useful for debugging graph structure. Loading replaces current registry.
@@ -452,7 +551,10 @@ END README
     </section>
     <section class="panel side-panel" data-panel="log" data-card-id="">
       <h2>
-        <span>Log</span>
+        <span class="svg-label-host">
+          <span class="card-text-source">Log</span>
+          <svg class="ui-label-svg" data-role="panel-log-svg" aria-hidden="true"></svg>
+        </span>
       </h2>
       <div class="content rightStack">
         <div class="field">
@@ -684,6 +786,9 @@ END README
 
     if(typeof window.renderCardTextSvg === "function"){
       window.renderCardTextSvg(card);
+    }
+    if(typeof window.renderCardUiLabelsSvg === "function"){
+      window.renderCardUiLabelsSvg(card);
     }
 
     // Keep adjacent panels aligned.

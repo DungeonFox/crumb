@@ -336,6 +336,52 @@
     svg.appendChild(gEl);
   }
 
+  function renderGlyphLabel(svg, text, style, area, options = {}){
+    if (!svg || !area) return;
+    const width = Math.max(0, area.width || 0);
+    const height = Math.max(0, area.height || 0);
+    if (!width || !height) return;
+
+    svg.style.position = "absolute";
+    svg.style.left = "0";
+    svg.style.top = "0";
+    svg.style.width = `${width}px`;
+    svg.style.height = `${height}px`;
+    svg.setAttribute("width", `${width}`);
+    svg.setAttribute("height", `${height}`);
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+    clearGlyphLayers(svg);
+    if (!text) return;
+
+    const fontSizePx = parsePx(style.fontSize, 14);
+    const lineHeightPx = getLineHeightPx(style, fontSizePx);
+    const trackingPx = parsePx(style.letterSpacing, 0);
+    const fill = style.color || "rgba(235,240,255,.95)";
+    const paddingPx = Math.max(0, options.paddingPx || 0);
+    const maxLines = Math.max(1, options.maxLines || 1);
+
+    renderTextGroup(svg, {
+      text,
+      area: {
+        left: 0,
+        top: 0,
+        width,
+        height
+      },
+      fontSizePx,
+      lineHeightPx,
+      trackingPx,
+      paddingPx,
+      maxLines,
+      align: options.align || "center",
+      allowWrap: Boolean(options.allowWrap),
+      breakLongWords: false,
+      fill,
+      opacity: options.opacity ?? 1
+    });
+  }
+
   function parsePx(value, fallback = 0){
     if (value == null) return fallback;
     const v = Number.parseFloat(String(value).trim().replace(/px$/i, ""));
@@ -354,6 +400,50 @@
     const parsed = Number.parseFloat(raw);
     if (Number.isFinite(parsed)) return parsed;
     return fontSizePx * 1.2;
+  }
+
+  function renderCardUiLabelsSvg(cardRoot){
+    const card = cardRoot?.classList?.contains("tcg-card")
+      ? cardRoot
+      : cardRoot?.querySelector?.(".tcg-card");
+    if (!card) return;
+
+    const scope = card.closest(".card-shell") || card;
+    const labelHosts = scope.querySelectorAll(".svg-label-host");
+    if (!labelHosts.length) return;
+
+    labelHosts.forEach((host) => {
+      const source = host.querySelector(".card-text-source");
+      const svg = host.querySelector(".ui-label-svg");
+      if (!source || !svg) return;
+
+      const text = String(source.textContent || "").trim();
+      const rect = host.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
+      const hostStyle = window.getComputedStyle(host);
+      const sourceStyle = window.getComputedStyle(source);
+      const paddingPx = Math.min(
+        parsePx(hostStyle.paddingLeft, 0),
+        parsePx(hostStyle.paddingRight, 0),
+        parsePx(hostStyle.paddingTop, 0),
+        parsePx(hostStyle.paddingBottom, 0)
+      );
+      const align = host.dataset.uiAlign
+        || ((host.tagName === "BUTTON" || host.classList.contains("card-control") || host.classList.contains("card-header__status")) ? "center" : "left");
+
+      renderGlyphLabel(
+        svg,
+        text,
+        sourceStyle,
+        { width: rect.width, height: rect.height },
+        {
+          paddingPx,
+          align,
+          allowWrap: host.dataset.uiWrap === "true"
+        }
+      );
+    });
   }
 
   function renderCardTextSvg(cardRoot){
@@ -482,8 +572,10 @@
     measureGlyphRunUnits,
     wrapTokensIntoLines,
     computePlacements,
-    renderTextGroup
+    renderTextGroup,
+    renderGlyphLabel
   };
 
   window.renderCardTextSvg = renderCardTextSvg;
+  window.renderCardUiLabelsSvg = renderCardUiLabelsSvg;
 })();
