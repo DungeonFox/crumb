@@ -277,6 +277,9 @@
   layoutTarget.style.setProperty("--image-gap", `${6 * baseScale}px`);
 
   updateControlsPosition(card);
+  if (typeof window.renderCardTextSvg === "function"){
+    window.renderCardTextSvg(card);
+  }
 }
 
 
@@ -317,6 +320,9 @@
     root.dataset.cardId = safeId;
     const title = $role(root, "card-title");
     if (title) title.textContent = `Sprite Editor Deck · ${safeId}`;
+    if (typeof window.renderCardTextSvg === "function"){
+      window.renderCardTextSvg(root);
+    }
     const panelHosts = root.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
     panelHosts.forEach((panelHost) => {
       panelHost.dataset.cardId = safeId;
