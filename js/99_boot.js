@@ -280,8 +280,8 @@
   if (typeof window.renderCardTextSvg === "function"){
     window.renderCardTextSvg(card);
   }
-  if (typeof window.renderCardUiLabelsSvg === "function"){
-    window.renderCardUiLabelsSvg(card);
+  if (typeof window.renderUiLabelsSvg === "function"){
+    window.renderUiLabelsSvg(card);
   }
 }
 
@@ -326,8 +326,8 @@
     if (typeof window.renderCardTextSvg === "function"){
       window.renderCardTextSvg(root);
     }
-    if (typeof window.renderCardUiLabelsSvg === "function"){
-      window.renderCardUiLabelsSvg(root);
+    if (typeof window.renderUiLabelsSvg === "function"){
+      window.renderUiLabelsSvg(root);
     }
     const panelHosts = root.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
     panelHosts.forEach((panelHost) => {

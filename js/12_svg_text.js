@@ -402,7 +402,7 @@
     return fontSizePx * 1.2;
   }
 
-  function renderCardUiLabelsSvg(cardRoot){
+  function renderUiLabelsSvg(cardRoot){
     const card = cardRoot?.classList?.contains("tcg-card")
       ? cardRoot
       : cardRoot?.querySelector?.(".tcg-card");
@@ -413,13 +413,29 @@
     if (!labelHosts.length) return;
 
     labelHosts.forEach((host) => {
-      const source = host.querySelector(".card-text-source");
       const svg = host.querySelector(".ui-label-svg");
-      if (!source || !svg) return;
+      if (!svg) return;
 
+      const source = host.querySelector(".card-text-source") || host;
       const text = String(source.textContent || "").trim();
       const rect = host.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
+
+      if (source === host && !host.classList.contains("card-text-source")){
+        host.style.color = "transparent";
+      }
+
+      svg.style.position = "absolute";
+      svg.style.left = "0";
+      svg.style.top = "0";
+      svg.style.width = `${rect.width}px`;
+      svg.style.height = `${rect.height}px`;
+      svg.setAttribute("width", `${rect.width}`);
+      svg.setAttribute("height", `${rect.height}`);
+      svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+
+      clearGlyphLayers(svg);
+      if (!text) return;
 
       const hostStyle = window.getComputedStyle(host);
       const sourceStyle = window.getComputedStyle(source);
@@ -431,18 +447,34 @@
       );
       const align = host.dataset.uiAlign
         || ((host.tagName === "BUTTON" || host.classList.contains("card-control") || host.classList.contains("card-header__status")) ? "center" : "left");
+      const fontSizePx = parsePx(sourceStyle.fontSize, 14);
+      const lineHeightPx = getLineHeightPx(sourceStyle, fontSizePx);
+      const trackingPx = parsePx(sourceStyle.letterSpacing, 0);
+      const fill = sourceStyle.color || "rgba(235,240,255,.95)";
+      const allowWrap = host.dataset.uiWrap === "true";
+      const maxLines = allowWrap
+        ? Math.max(1, Math.floor((rect.height - paddingPx * 2) / Math.max(lineHeightPx, 1)))
+        : 1;
 
-      renderGlyphLabel(
-        svg,
+      renderTextGroup(svg, {
         text,
-        sourceStyle,
-        { width: rect.width, height: rect.height },
-        {
-          paddingPx,
-          align,
-          allowWrap: host.dataset.uiWrap === "true"
-        }
-      );
+        area: {
+          left: 0,
+          top: 0,
+          width: rect.width,
+          height: rect.height
+        },
+        fontSizePx,
+        lineHeightPx,
+        trackingPx,
+        paddingPx,
+        maxLines,
+        align,
+        allowWrap,
+        breakLongWords: false,
+        fill,
+        opacity: 1
+      });
     });
   }
 
@@ -579,5 +611,6 @@
   };
 
   window.renderCardTextSvg = renderCardTextSvg;
-  window.renderCardUiLabelsSvg = renderCardUiLabelsSvg;
+  window.renderUiLabelsSvg = renderUiLabelsSvg;
+  window.renderCardUiLabelsSvg = renderUiLabelsSvg;
 })();

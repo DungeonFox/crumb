@@ -354,10 +354,22 @@ function updateStatus(cardRoot){
   const recMini = $role(root, "rec-root-mini");
   const taskMini = $role(root, "task-root-mini");
   const mergedJson = $role(root, "merged-json");
-  if (tplMini) tplMini.textContent = state.roots.template ? state.roots.template : "(no template root)";
-  if (recMini) recMini.textContent = state.roots.recipe ? state.roots.recipe : "(no recipe root)";
-  if (taskMini) taskMini.textContent = (state.roots.tasks && state.roots.tasks.length) ? `${state.roots.tasks.length} task(s)` : "(no tasks)";
+  const setMiniText = (el, value) => {
+    if (!el) return;
+    const source = el.querySelector(".card-text-source");
+    if (source){
+      source.textContent = value;
+    } else {
+      el.textContent = value;
+    }
+  };
+  setMiniText(tplMini, state.roots.template ? state.roots.template : "(no template root)");
+  setMiniText(recMini, state.roots.recipe ? state.roots.recipe : "(no recipe root)");
+  setMiniText(taskMini, (state.roots.tasks && state.roots.tasks.length) ? `${state.roots.tasks.length} task(s)` : "(no tasks)");
   if (mergedJson) mergedJson.value = JSON.stringify(toManifestSnapshot(root), null, 2);
+  if (typeof window.renderUiLabelsSvg === "function"){
+    window.renderUiLabelsSvg(root);
+  }
 }
 
 // Expose helpers for card_store + patches
