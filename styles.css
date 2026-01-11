@@ -198,6 +198,25 @@
   .card-text-source{
     visibility:hidden;
   }
+  .svg-label-host{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .svg-label-host .ui-label-svg{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+    pointer-events:none;
+  }
+  .panel-title{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
   .card-header__badge{
     font-size:11px;
     letter-spacing:0.6px;

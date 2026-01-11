@@ -280,6 +280,9 @@
   if (typeof window.renderCardTextSvg === "function"){
     window.renderCardTextSvg(card);
   }
+  if (typeof window.renderCardUiLabelsSvg === "function"){
+    window.renderCardUiLabelsSvg(card);
+  }
 }
 
 
@@ -322,6 +325,9 @@
     if (title) title.textContent = `Sprite Editor Deck · ${safeId}`;
     if (typeof window.renderCardTextSvg === "function"){
       window.renderCardTextSvg(root);
+    }
+    if (typeof window.renderCardUiLabelsSvg === "function"){
+      window.renderCardUiLabelsSvg(root);
     }
     const panelHosts = root.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
     panelHosts.forEach((panelHost) => {

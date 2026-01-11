@@ -202,6 +202,9 @@ async function __renderOnceInner(root){
     }
     if (sizeInfo) sizeInfo.textContent = `${outW}×${outH}`;
     if (playMini) playMini.textContent = state.playing ? "playing" : "stopped";
+    if (typeof window.renderCardUiLabelsSvg === "function"){
+      window.renderCardUiLabelsSvg(root);
+    }
   
 }
 
@@ -223,6 +226,9 @@ async function __tickInner(root){
       setPlayButtonState(root, false);
       const playMini = root ? $role(root, "play-mini") : null;
       if (playMini) playMini.textContent = "stopped";
+      if (typeof window.renderCardUiLabelsSvg === "function"){
+        window.renderCardUiLabelsSvg(root);
+      }
       return;
     }
     const now = performance.now();
