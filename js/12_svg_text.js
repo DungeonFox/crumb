@@ -461,6 +461,8 @@
     if (!layer) return;
 
     const cardScale = readBaseMetric(layoutStyle, "--card-scale", 1);
+    const layoutX = readBaseMetric(layoutStyle, "--layout-x", 0);
+    const layoutY = readBaseMetric(layoutStyle, "--layout-y", 0);
     const headerX = readBaseMetric(layoutStyle, "--header-x", 0);
     const headerY = readBaseMetric(layoutStyle, "--header-y", 0);
     const headerW = readBaseMetric(layoutStyle, "--header-w", 0);
@@ -481,8 +483,8 @@
         source: card.querySelector('[data-role="card-title"]'),
         svg: card.querySelector('[data-role="card-title-svg"]'),
         area: {
-          left: headerX + headerPadX,
-          top: headerY + headerPadY,
+          left: layoutX + headerX + headerPadX,
+          top: layoutY + headerY + headerPadY,
           width: Math.max(0, headerW - headerPadX * 2),
           height: Math.max(0, headerH - headerPadY * 2)
         },
@@ -493,8 +495,8 @@
         source: card.querySelector('[data-role="card-text"]'),
         svg: card.querySelector('[data-role="card-text-svg"]'),
         area: {
-          left: panelsX,
-          top: panelsY + sectionHeight + sectionGap,
+          left: layoutX + panelsX,
+          top: layoutY + panelsY + sectionHeight + sectionGap,
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
@@ -505,8 +507,8 @@
         source: card.querySelector('[data-role="card-task"]'),
         svg: card.querySelector('[data-role="card-task-svg"]'),
         area: {
-          left: panelsX,
-          top: panelsY + (sectionHeight + sectionGap) * 2,
+          left: layoutX + panelsX,
+          top: layoutY + panelsY + (sectionHeight + sectionGap) * 2,
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
