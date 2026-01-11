@@ -206,7 +206,7 @@ END README
         <div class="tcg-card__content">
           <div class="card-header">
             <div class="card-header__title">
-              <span data-role="card-title"></span>
+              <span data-role="card-title" class="card-text-source"></span>
               <span data-role="play-mini" class="card-header__status">stopped</span>
             </div>
             <div class="card-header__badge card-header__controls">
@@ -217,6 +217,11 @@ END README
               <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="registry" aria-pressed="true" title="Toggle registry panel" aria-label="Toggle registry panel">🗂</button>
               <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="log" aria-pressed="true" title="Toggle log panel" aria-label="Toggle log panel">📜</button>
             </div>
+          </div>
+          <div class="card-text-svg-layer" aria-hidden="true">
+            <svg class="card-text-svg" data-role="card-title-svg" aria-hidden="true"></svg>
+            <svg class="card-text-svg" data-role="card-text-svg" aria-hidden="true"></svg>
+            <svg class="card-text-svg" data-role="card-task-svg" aria-hidden="true"></svg>
           </div>
           <div class="card-image">
             <div class="card-image__frame">
@@ -294,7 +299,7 @@ END README
         <!-- RECIPE -->
         <section class="panel">
         <h2>
-          <span>Animation Recipe Builder <span class="mini" data-role="rec-root-mini"></span></span>
+          <span><span data-role="card-text" class="card-text-source">Animation Recipe Builder</span><span class="mini" data-role="rec-root-mini"></span></span>
           <span class="kbar">
             <input data-role="file-recipe" type="file" accept=".json,application/json" />
             <button data-role="btn-save-recipe">Save animation.json</button>
@@ -356,7 +361,7 @@ END README
       <div class="card-task">
       <section class="panel">
       <h2>
-        <span>Tasker Manager <span class="mini" data-role="task-root-mini"></span></span>
+        <span><span data-role="card-task" class="card-text-source">Tasker Manager</span><span class="mini" data-role="task-root-mini"></span></span>
         <span class="kbar">
           <input data-role="file-tasker" type="file" accept=".json,application/json" />
           <button data-role="btn-save-tasks">Save tasks.json</button>
@@ -497,6 +502,8 @@ END README
   <script defer src="js/libraries/networkLibrary.js"></script>
   <script defer src="js/libraries/repositoryLibrary.js"></script>
   <script defer src="js/libraries/idManager_adapted.js"></script>
+  <script defer src="js/font_atlas.js"></script>
+  <script defer src="js/12_svg_text.js"></script>
   <script defer src="js/10_card_store.js"></script>
   <script defer src="js/11_env_overlay_bridge.js"></script>
   <script defer src="js/99_boot.js"></script>

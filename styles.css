@@ -180,6 +180,24 @@
     align-items:center;
     gap:10px;
   }
+  .card-text-svg-layer{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:2;
+  }
+  .card-text-svg{
+    position:absolute;
+    left:0;
+    top:0;
+    width:0;
+    height:0;
+    display:block;
+    overflow:visible;
+  }
+  .card-text-source{
+    visibility:hidden;
+  }
   .card-header__badge{
     font-size:11px;
     letter-spacing:0.6px;
