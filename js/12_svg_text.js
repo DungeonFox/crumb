@@ -486,10 +486,10 @@
 
     const layoutTarget = card.querySelector(".tcg-card__layout") || card;
     const layoutStyle = window.getComputedStyle(layoutTarget);
-    const content = card.querySelector(".tcg-card__content");
+    const content = layoutTarget.querySelector(".tcg-card__content");
     if (!content) return;
 
-    const layer = content.querySelector(".card-text-svg-layer");
+    const layer = layoutTarget.querySelector(".card-text-svg-layer");
     if (!layer) return;
 
     const cardScale = readBaseMetric(layoutStyle, "--card-scale", 1);
@@ -515,8 +515,8 @@
         source: card.querySelector('[data-role="card-title"]'),
         svg: card.querySelector('[data-role="card-title-svg"]'),
         area: {
-          left: layoutX + headerX + headerPadX,
-          top: layoutY + headerY + headerPadY,
+          left: headerX + headerPadX,
+          top: headerY + headerPadY,
           width: Math.max(0, headerW - headerPadX * 2),
           height: Math.max(0, headerH - headerPadY * 2)
         },
@@ -527,8 +527,8 @@
         source: card.querySelector('[data-role="card-text"]'),
         svg: card.querySelector('[data-role="card-text-svg"]'),
         area: {
-          left: layoutX + panelsX,
-          top: layoutY + panelsY + sectionHeight + sectionGap,
+          left: panelsX,
+          top: panelsY + sectionHeight + sectionGap,
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
@@ -539,8 +539,8 @@
         source: card.querySelector('[data-role="card-task"]'),
         svg: card.querySelector('[data-role="card-task-svg"]'),
         area: {
-          left: layoutX + panelsX,
-          top: layoutY + panelsY + (sectionHeight + sectionGap) * 2,
+          left: panelsX,
+          top: panelsY + (sectionHeight + sectionGap) * 2,
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
@@ -553,15 +553,21 @@
       const svg = block.svg;
       if (!svg) return;
       const text = block.source ? String(block.source.textContent || "").trim() : "";
+      const renderArea = {
+        left: block.area.left + layoutX,
+        top: block.area.top + layoutY,
+        width: block.area.width,
+        height: block.area.height
+      };
 
       svg.style.position = "absolute";
-      svg.style.left = `${block.area.left}px`;
-      svg.style.top = `${block.area.top}px`;
-      svg.style.width = `${block.area.width}px`;
-      svg.style.height = `${block.area.height}px`;
-      svg.setAttribute("width", `${block.area.width}`);
-      svg.setAttribute("height", `${block.area.height}`);
-      svg.setAttribute("viewBox", `0 0 ${block.area.width} ${block.area.height}`);
+      svg.style.left = `${renderArea.left}px`;
+      svg.style.top = `${renderArea.top}px`;
+      svg.style.width = `${renderArea.width}px`;
+      svg.style.height = `${renderArea.height}px`;
+      svg.setAttribute("width", `${renderArea.width}`);
+      svg.setAttribute("height", `${renderArea.height}`);
+      svg.setAttribute("viewBox", `0 0 ${renderArea.width} ${renderArea.height}`);
 
       clearGlyphLayers(svg);
 
@@ -576,15 +582,15 @@
       const fontSizePx = baseFontSize * cardScale;
       const lineHeightPx = baseLineHeight * cardScale;
       const trackingPx = baseLetterSpacing * cardScale;
-      const maxLines = Math.max(1, Math.floor((block.area.height - block.paddingPx * 2) / lineHeightPx));
+      const maxLines = Math.max(1, Math.floor((renderArea.height - block.paddingPx * 2) / lineHeightPx));
 
       renderTextGroup(svg, {
         text,
         area: {
           left: 0,
           top: 0,
-          width: block.area.width,
-          height: block.area.height
+          width: renderArea.width,
+          height: renderArea.height
         },
         fontSizePx,
         lineHeightPx,
