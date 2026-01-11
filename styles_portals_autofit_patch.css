@@ -1,0 +1,148 @@
+/* ============================================================================
+   Portal Auto-fit "vector-like" scaling patch
+   ----------------------------------------------------------------------------
+   Goal: keep the card UI crisp by *recomputing* sizes (no CSS transform scaling).
+   We piggyback on --card-zoom (set by updateCardLayout_portal / updateCardLayout)
+   and scale the places where styles.css used fixed pixel sizes.
+   ========================================================================== */
+
+.tcg-card{
+  --u: var(--card-zoom, 1);
+  font-size: calc(16px * var(--u));
+  border-radius: calc(22px * var(--u));
+  /* keep borders visible when tiny */
+  border-width: max(1px, calc(1px * var(--u)));
+  box-shadow:
+    0 calc(18px * var(--u)) calc(40px * var(--u)) rgba(0,0,0,0.55),
+    inset 0 0 0 max(1px, calc(1px * var(--u))) rgba(255,255,255,0.05);
+}
+
+.tcg-card__layout{
+  border-radius: inherit;
+}
+
+.tcg-card .tcg-card__content{
+  gap: var(--section-gap, calc(12px * var(--u)));
+  padding: var(--card-padding, calc(18px * var(--u)));
+}
+
+.tcg-card .card-header{
+  border-radius: calc(14px * var(--u));
+  box-shadow: inset 0 0 calc(12px * var(--u)) rgba(255, 232, 168, 0.18);
+}
+
+.tcg-card .card-header__title{
+  gap: calc(10px * var(--u));
+}
+
+.tcg-card .card-header__badge{
+  font-size: calc(11px * var(--u));
+  padding: calc(4px * var(--u)) calc(8px * var(--u));
+  gap: calc(6px * var(--u));
+  border-width: max(1px, calc(1px * var(--u)));
+}
+
+.tcg-card .card-header__status{
+  font-size: calc(10px * var(--u));
+  padding: calc(2px * var(--u)) calc(6px * var(--u));
+  border-width: max(1px, calc(1px * var(--u)));
+}
+
+.tcg-card .card-header__divider{
+  height: calc(18px * var(--u));
+}
+
+.tcg-card .card-control{
+  border-radius: calc(8px * var(--u));
+  padding: calc(4px * var(--u)) calc(6px * var(--u));
+  font-size: calc(13px * var(--u));
+  min-width: calc(26px * var(--u));
+  min-height: calc(24px * var(--u));
+  border-width: max(1px, calc(1px * var(--u)));
+}
+
+.tcg-card .card-image__frame{
+  border-radius: calc(12px * var(--u));
+}
+
+.tcg-card .card-image__meta{
+  font-size: calc(12px * var(--u));
+}
+
+.tcg-card .panel{
+  border-radius: calc(12px * var(--u));
+}
+
+.tcg-card .panel h2{
+  padding: calc(10px * var(--u)) calc(10px * var(--u)) calc(8px * var(--u));
+  font-size: calc(13px * var(--u));
+}
+
+.tcg-card .panel h2 .mini{
+  font-size: calc(11px * var(--u));
+}
+
+.tcg-card .panel .content{
+  padding: calc(10px * var(--u));
+}
+
+.tcg-card .grid2{ gap: calc(10px * var(--u)); }
+.tcg-card .grid3{ gap: calc(10px * var(--u)); }
+
+.tcg-card .field{
+  gap: calc(5px * var(--u));
+  padding: calc(8px * var(--u));
+  border-radius: calc(10px * var(--u));
+}
+
+.tcg-card .field input[type="number"],
+.tcg-card .field input[type="text"],
+.tcg-card .field select,
+.tcg-card textarea{
+  padding: calc(7px * var(--u)) calc(8px * var(--u));
+  border-radius: calc(8px * var(--u));
+  border-width: max(1px, calc(1px * var(--u)));
+}
+
+.tcg-card textarea{
+  font-size: calc(12px * var(--u));
+  min-height: calc(160px * var(--u));
+}
+
+.tcg-card .list{
+  border-radius: calc(10px * var(--u));
+}
+
+.tcg-card .list .head,
+.tcg-card .list .item{
+  padding: calc(8px * var(--u)) calc(10px * var(--u));
+  gap: calc(8px * var(--u));
+}
+
+.tcg-card .list .head{ font-size: calc(11px * var(--u)); }
+.tcg-card .list .item{ font-size: calc(12px * var(--u)); }
+
+.tcg-card .badge{
+  padding: calc(2px * var(--u)) calc(6px * var(--u));
+  font-size: calc(11px * var(--u));
+}
+
+.tcg-card .kbar{ gap: calc(8px * var(--u)); }
+.tcg-card .kbar .toggle{
+  padding: calc(6px * var(--u)) calc(8px * var(--u));
+  border-radius: calc(10px * var(--u));
+  border-width: max(1px, calc(1px * var(--u)));
+}
+
+.tcg-card .card-footer{
+  border-radius: calc(12px * var(--u));
+}
+
+/* When cards get very small, keep controls clickable:
+   - don't let min-width/min-height collapse below a usable target */
+@media (pointer: coarse){
+  .tcg-card .card-control{
+    min-width: max(34px, calc(26px * var(--u)));
+    min-height: max(34px, calc(24px * var(--u)));
+  }
+}

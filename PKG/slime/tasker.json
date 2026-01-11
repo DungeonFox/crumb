@@ -1,0 +1,121 @@
+{
+  "manifestVersion": 1,
+  "nodes": {
+    "tsk:slime_wander": {
+      "type": "Task",
+      "name": "Slime Wander Hop (3R then 3L, 100f@30ms)",
+      "commands": [
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 0,
+          "left": "CLl + 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 8,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 16,
+          "left": "CLl + 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 24,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 32,
+          "left": "CLl + 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 40,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 56,
+          "left": "CLl - 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 64,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 72,
+          "left": "CLl - 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 80,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 88,
+          "left": "CLl - 12",
+          "top": "CLt - 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 96,
+          "top": "CLt + 18",
+          "duration": 240,
+          "ease": "inOutCubic",
+          "repeat": true
+        }
+      ],
+      "meta": {
+        "kind": "tasker"
+      }
+    }
+  },
+  "roots": {
+    "tasks": [
+      "tsk:slime_wander"
+    ]
+  }
+}

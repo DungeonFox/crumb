@@ -1,0 +1,821 @@
+<!--
+SPRITE HEX-GRAPH FLIPBOOK TOOL WITH TASKER (single-file, no deps)
+================================================================
+
+This is an extended version of the Hex‑Graph Sprite Flipbook Tool. It retains the original template
+and recipe editors, registry system, pop‑out viewer and atlas exporter, and adds a new "Tasker"
+subsystem for automating the pop‑out viewer. Tasks live in a separate manifest (tasks.json) and are
+identified by stable hex IDs (namespace `tsk:`). A task is a list of commands executed sequentially
+with optional delays. Commands are sent to the pop‑out viewer via postMessage and can instruct the
+viewer to pause/play, jump to specific frames, toggle layer visibility, adjust layer opacity, or
+wait for a specified duration. Tasks can be loaded, edited and saved independently from templates
+and recipes.
+
+--------------------------------------------------------------------------------
+FILE FORMATS (revision)
+--------------------------------------------------------------------------------
+
+In addition to the types documented in the original tool, there is now a new
+`Task` node type. A combined registry may hold assets, rects, frames, templates,
+layers, recipes and tasks in one merged manifest. Tasks are declared in
+tasks.json but can be merged into the global registry like any other nodes.
+
+Manifest envelope (unchanged):
+
+```
+{
+  "manifestVersion": 1,
+  "nodes": {
+    ...
+  },
+  "roots": {
+    "template": "tpl:0x...",     // template root id (optional)
+    "recipe":   "anim:0x...",    // recipe root id (optional)
+    "assets":   ["asset:0x..."], // loaded assets
+    "tasks":    ["tsk:0x..."]    // list of task root IDs (optional)
+  }
+}
+```
+
+Task node schema:
+
+```
+ID: tsk:0x...
+{
+  "type": "Task",
+  "name": "Jump & Pause",
+  "commands": [
+    { "cmd": "goToFrameIndex", "index": 0 },
+    { "cmd": "play" },
+    { "cmd": "wait", "duration": 1000 },
+    { "cmd": "pause" },
+    { "cmd": "setLayerVisibility", "layer": "anim:0x...", "visible": false },
+    { "cmd": "setLayerOpacity", "layer": "anim:0x...", "opacity": 0.5 }
+  ]
+}
+```
+
+Commands supported by the built‑in viewer:
+
+* **play**: resumes playback.
+* **pause**: pauses playback.
+* **goToFrameIndex**: jumps to the specified frame index (0‑based). Frames are resolved from the
+  recipe’s frame list.
+* **setLayerVisibility**: toggles a layer’s `visible` flag. The `layer` field must reference a
+  layer ID (anim:0x...).
+* **setLayerOpacity**: sets a layer’s opacity (0..1). The `layer` field must reference a layer ID.
+* **wait**: instructs the Tasker to wait the specified `duration` (in ms) before proceeding to
+  the next command. Note: `wait` does not send anything to the viewer; it merely delays task
+  execution.
+
+* **setWindowGeometry**: resizes and/or moves the pop‑out viewer window. It accepts optional
+  `width`, `height`, `left` and `top` properties (numbers, in pixels). Any omitted property
+  leaves that dimension or position unchanged. For example:
+
+  ```
+  { "cmd": "setWindowGeometry", "width": 640, "height": 480, "left": 200, "top": 100 }
+  ```
+
+  When run as part of a task, this command asks the viewer to resize itself to 640×480 pixels
+  and move to screen coordinates (200,100). If only width/height are provided, the window stays
+  anchored in its current position. If only left/top are provided, the size is preserved.
+
+* **setWindowGeometryOnFrame**: like **setWindowGeometry** but deferred until the viewer
+  reaches a specified frame. In addition to the geometry properties (`left`, `top`, `width`,
+  `height`), it accepts one of `frameIndex` (number), `frameName` (string) or `frameId`
+  (string). When a frame event matching the criteria is emitted by the viewer, the geometry
+  changes are applied via `setWindowGeometry`. By default the trigger fires once; include
+  `"repeat": true` to apply on every matching frame.
+
+--------------------------------------------------------------------------------
+CARD-SCOPED EXECUTION HELPER (run)
+--------------------------------------------------------------------------------
+
+Some UI handlers use a helper called `run(...)` to execute work in the *owner card’s* context.
+If `run` is missing, you’ll see: `Uncaught ReferenceError: run is not defined`.
+
+Drop-in script: `js/00_run.js`
+
+Expected behavior:
+
+- `run(fn)` targets the owner card automatically when called from a UI event.
+- `run(cardRootOrChildEl, fn)` targets the specified card.
+- When available, `run` uses `resolveCardRoot(...)` and `withCardRegistry(...)` so selection,
+  registry edits, and viewer commands remain card-safe.
+
+================================================================================
+END README
+================================================================================
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hex‑Graph Sprite Flipbook Tool with Tasker</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles_portals_autofit_patch.css">
+
+<style>
+  /* Header sizing controls (kept local to index.html to avoid touching your shared styles.css) */
+  .cardSizingControls{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-left:10px;
+  }
+  .tightLabel{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .tightLabel input[type="number"]{
+    width:92px;
+    padding:4px 6px;
+  }
+  .zoomRange{
+    width:160px;
+  }
+  #cardZoomOut{
+    min-width:64px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">Hex‑Graph Sprite Flipbook Tool</div>
+  <span class="pill">single‑file • offline • no deps</span>
+  <span id="statusPill" class="pill">registry: 0 nodes</span>
+  <button class="pill" type="button" data-role="btn-new-card">New Card</button>
+  <div class="row">
+    <label for="packageSelect">Package</label>
+    <select id="packageSelect" data-role="package-select"></select>
+  </div>
+  <div class="cardSizingControls" id="cardSizingControls" aria-label="Card sizing controls">
+    <span class="pill">Card</span>
+
+    <label class="tightLabel" title="Ideal card width in pixels (design units before scaling)">
+      W
+      <input id="cardIdealW" type="number" min="50" step="10" value="1000" />
+    </label>
+
+    <label class="tightLabel" title="Ideal card height in pixels (design units before scaling)">
+      H
+      <input id="cardIdealH" type="number" min="50" step="10" value="1400" />
+    </label>
+
+    <label class="pill tightLabel" title="Automatically scale cards to fit the available viewport">
+      <input id="cardAutoFit" type="checkbox" />
+      Auto-fit
+    </label>
+
+    <label class="tightLabel" title="Manual view scale (used when Auto-fit is off)">
+      Zoom
+      <input id="cardZoom" class="zoomRange" type="range" min="0.10" max="2.00" step="0.01" value="1.00" />
+      <span id="cardZoomOut" class="pill">1.00×</span>
+    </label>
+
+    <label class="pill tightLabel" title="Derive layout regions from the card's SVG dieline so the content tracks size changes">
+      <input id="cardAutoLayout" type="checkbox" checked />
+      Auto layout
+    </label>
+
+    <button id="cardApplySizing" class="primary" type="button" title="Apply settings (and save to localStorage)">Apply</button>
+  </div>
+      <div class="spacer"></div>
+</header>
+
+<div class="card-container">
+  <div class="card-shell" data-card-id="">
+  <div class="tcg-card">
+    <div class="tcg-card__content-center">
+      <div class="tcg-card__layout">
+        <svg class="card-layout" viewBox="0 0 1000 1400" aria-hidden="true">
+          <rect data-region="safe" x="0" y="0" width="1000" height="1400" rx="22" ry="22"></rect>
+          <rect data-region="header" x="0" y="0" width="1000" height="130"></rect>
+          <rect data-region="section-gap" x="0" y="130" width="1000" height="20"></rect>
+          <rect data-region="image" x="0" y="150" width="1000" height="280"></rect>
+          <rect data-region="panels" x="0" y="430" width="1000" height="880"></rect>
+          <rect data-region="footer" x="0" y="1310" width="1000" height="90"></rect>
+        </svg>
+        <div class="tcg-card__content">
+          <div class="card-header">
+            <div class="card-header__title">
+              <span data-role="card-title"></span>
+              <span data-role="play-mini" class="card-header__status">stopped</span>
+            </div>
+            <div class="card-header__badge card-header__controls">
+              <button data-role="btn-play" class="card-control" type="button" title="Play/Pause preview" aria-label="Play or pause preview" aria-pressed="false">▶</button>
+              <button data-role="btn-step" class="card-control" type="button" title="Step preview" aria-label="Step preview frame">⏭</button>
+              <button data-role="btn-reset" class="card-control" type="button" title="Reset preview" aria-label="Reset preview">⟲</button>
+              <span class="card-header__divider" aria-hidden="true"></span>
+              <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="registry" aria-pressed="true" title="Toggle registry panel" aria-label="Toggle registry panel">🗂</button>
+              <button class="card-control card-control--toggle is-active" type="button" data-panel-toggle="log" aria-pressed="true" title="Toggle log panel" aria-label="Toggle log panel">📜</button>
+            </div>
+          </div>
+          <div class="card-image">
+            <div class="card-image__frame">
+              <canvas data-role="preview-canvas" width="256" height="256"></canvas>
+              <div class="row card-image__meta" style="justify-content:space-between;">
+                <div class="small muted">Frame: <span data-role="frame-info" class="mono"></span></div>
+                <div class="small muted">Size: <span data-role="size-info" class="mono"></span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-panels">
+            <div class="card-type">
+          <!-- TEMPLATE -->
+          <section class="panel">
+          <h2>
+            <span>Template Editor <span class="mini" data-role="tpl-root-mini"></span></span>
+            <span class="kbar">
+              <input data-role="file-template" type="file" accept=".json,application/json" />
+              <button data-role="btn-save-template">Save template.json</button>
+            </span>
+          </h2>
+          <div class="content" data-role="template-panel">
+            <div class="grid2">
+              <div class="field">
+                <label>tileW / tileH</label>
+                <div class="row">
+                  <input data-role="tpl-tile-w" type="number" min="1" step="1" />
+                  <input data-role="tpl-tile-h" type="number" min="1" step="1" />
+                </div>
+              </div>
+              <div class="field">
+                <label>gridW / gridH (output size = tileW×gridW by tileH×gridH)</label>
+                <div class="row">
+                  <input data-role="tpl-grid-w" type="number" min="1" step="1" />
+                  <input data-role="tpl-grid-h" type="number" min="1" step="1" />
+                </div>
+              </div>
+            </div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div class="muted small">Rects (source slices + destination placement)</div>
+              <div class="small muted">IDs are stable refs. Rects are shared across layers.</div>
+            </div>
+            <div class="row">
+              <button data-role="btn-add-rect">+ Rect</button>
+              <button data-role="btn-del-rect" class="danger">Delete Selected</button>
+            </div>
+          </div>
+
+          <div style="height:8px"></div>
+          <div class="list" data-role="rect-list"></div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div class="muted small">Frame Slots (timeline)</div>
+              <div class="small muted">Recipe overrides are keyed by FrameSlot IDs.</div>
+            </div>
+            <div class="row">
+              <button data-role="btn-add-frame">+ FrameSlot</button>
+              <button data-role="btn-del-frame" class="danger">Delete Selected</button>
+            </div>
+          </div>
+
+          <div style="height:8px"></div>
+          <div class="list" data-role="frame-list"></div>
+        </div>
+        </section>
+      </div>
+      <div class="card-text">
+        <!-- RECIPE -->
+        <section class="panel">
+        <h2>
+          <span>Animation Recipe Builder <span class="mini" data-role="rec-root-mini"></span></span>
+          <span class="kbar">
+            <input data-role="file-recipe" type="file" accept=".json,application/json" />
+            <button data-role="btn-save-recipe">Save animation.json</button>
+          </span>
+        </h2>
+        <div class="content" data-role="recipe-panel">
+          <div class="field">
+            <label>Recipe → Template Root</label>
+            <select data-role="recipe-template-select"></select>
+            <div class="small muted" style="margin-top:6px">
+              This recipe renders using the selected Template root node.
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div class="muted small">Assets</div>
+              <div class="small muted">Load images (embedded as data URLs for portability).</div>
+            </div>
+            <div class="row">
+              <input data-role="file-asset" type="file" accept="image/*" multiple />
+              <button data-role="btn-add-asset">+ Empty Asset</button>
+            </div>
+          </div>
+
+          <div style="height:8px"></div>
+          <div class="list" data-role="asset-list"></div>
+
+          <div class="hr"></div>
+
+          <div class="row" style="justify-content:space-between; align-items:flex-end;">
+            <div>
+              <div class="muted small">Layers</div>
+              <div class="small muted">Each layer samples an Asset and draws a Rect, with per-frame overrides.</div>
+            </div>
+            <div class="row">
+              <button data-role="btn-add-layer">+ Layer</button>
+              <button data-role="btn-del-layer" class="danger">Delete Selected</button>
+            </div>
+          </div>
+
+          <div style="height:8px"></div>
+          <div class="list" data-role="layer-list"></div>
+
+          <div class="hr"></div>
+          <div class="field">
+            <label>Selected Layer Overrides (by FrameSlot)</label>
+            <div class="small muted">Override rect and/or dx/dy/opacity for specific FrameSlots.</div>
+            <div style="height:8px"></div>
+            <div class="list" data-role="override-list"></div>
+          </div>
+        </div>
+        </section>
+      </div>
+
+      <!-- TASKER -->
+      <div class="card-task">
+      <section class="panel">
+      <h2>
+        <span>Tasker Manager <span class="mini" data-role="task-root-mini"></span></span>
+        <span class="kbar">
+          <input data-role="file-tasker" type="file" accept=".json,application/json" />
+          <button data-role="btn-save-tasks">Save tasks.json</button>
+          <button data-role="btn-run-tasks" class="primary">Run Tasks</button>
+        </span>
+      </h2>
+      <div class="content" data-role="task-panel">
+        <div class="row" style="justify-content:space-between; align-items:flex-end;">
+          <div>
+            <div class="muted small">Tasks</div>
+            <div class="small muted">Define tasks that control the pop‑out viewer.</div>
+          </div>
+          <div class="row">
+            <button data-role="btn-add-task">+ Task</button>
+            <button data-role="btn-del-task" class="danger">Delete Selected</button>
+          </div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="list" data-role="task-list"></div>
+        <div class="hr"></div>
+        <div class="field">
+          <label>Selected Task Editor</label>
+          <div class="small muted">Edit name and commands (as JSON array). Commands are executed sequentially.</div>
+          <div class="row" style="gap:8px; margin-top:6px">
+            <input data-role="task-name-input" type="text" placeholder="Task name" style="flex:1" />
+          </div>
+          <div style="height:6px"></div>
+          <textarea data-role="task-commands-input" placeholder='[{"cmd":"play"}]'></textarea>
+          <div class="row" style="margin-top:6px; justify-content:flex-end">
+            <button data-role="btn-update-task">Update Task</button>
+          </div>
+        </div>
+
+        <!-- Pop‑out viewer geometry controls -->
+        <div class="hr"></div>
+        <div class="field">
+          <label>Pop‑out Viewer Geometry</label>
+          <div class="small muted">Configure the default size and screen position of the pop‑out viewer. These values are used when opening a new viewer and can be applied to an open viewer at any time.</div>
+          <div class="row" style="flex-wrap:wrap; gap:8px; margin-top:6px">
+            <label style="font-size:11px">W</label>
+            <input data-role="popout-width" type="number" min="100" step="10" style="width:70px" aria-label="Pop-out width" />
+            <label style="font-size:11px">H</label>
+            <input data-role="popout-height" type="number" min="100" step="10" style="width:70px" aria-label="Pop-out height" />
+            <label style="font-size:11px">Left</label>
+            <input data-role="popout-left" type="number" step="10" style="width:70px" aria-label="Pop-out left" />
+            <label style="font-size:11px">Top</label>
+            <input data-role="popout-top" type="number" step="10" style="width:70px" aria-label="Pop-out top" />
+            <button data-role="popout-geometry-apply" class="primary">Apply</button>
+          </div>
+        </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="kbar">
+        <div class="toggle">
+          <label title="Recompute IDs from canonical node content and rewrite references.">
+            <input data-role="deterministic-ids" type="checkbox" checked />
+            Deterministic IDs
+          </label>
+        </div>
+        <button data-role="btn-rehash" class="primary" title="Recompute IDs topologically; rewrite references; clears caches.">Recompute IDs</button>
+        <button data-role="btn-popout" class="primary">Pop‑out Viewer</button>
+        <button data-role="btn-export-atlas" class="primary">Export Atlas PNG + JSON</button>
+      </div>
+    </div>
+    </div>
+  <aside class="card-adjacent" data-card-id="" aria-label="Supplemental preview panels">
+    <section class="panel side-panel" data-panel="registry" data-card-id="">
+      <h2>
+        <span>Registry Manifests</span>
+        <span class="mini">merged view</span>
+      </h2>
+      <div class="content rightStack">
+        <div class="field">
+          <label>Registry Manifests (merged view)</label>
+          <textarea data-role="merged-json" spellcheck="false"></textarea>
+          <div class="row">
+            <button data-role="btn-copy-merged">Copy</button>
+            <button data-role="btn-load-merged">Load (Merged JSON)</button>
+          </div>
+          <div class="small muted">
+            Useful for debugging graph structure. Loading replaces current registry.
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="panel side-panel" data-panel="log" data-card-id="">
+      <h2>
+        <span>Log</span>
+      </h2>
+      <div class="content rightStack">
+        <div class="field">
+          <label>Log</label>
+          <div data-role="log" class="log"></div>
+        </div>
+      </div>
+    </section>
+  </aside>
+  </div>
+</div>
+</div>
+</div>
+</div>
+  <template id="card-template"></template>
+  <script defer src="js/01_utilities.js"></script>
+  <script defer src="js/00_run.js"></script>
+  <script defer src="js/01_package_state.js"></script>
+    <!-- PKG packages (offline registration) -->
+  <script defer src="PKG/slime/package.js"></script>
+  <script defer src="PKG/knight/package.js"></script>
+  <script defer src="PKG/Chest with Treasure_HS/package.js"></script>
+  <script defer src="PKG/Environment/package.js"></script>
+
+<script defer src="js/02_registry.js"></script>
+  <script defer src="js/03_graph_helpers.js"></script>
+  <script defer src="js/04_reid.js"></script>
+  <script defer src="js/05_renderer.js"></script>
+  <script defer src="js/06_popout.js"></script>
+  <script defer src="js/ui/01_selection_ids.js"></script>
+  <script defer src="js/ui/02_template_recipe.js"></script>
+  <script defer src="js/ui/03_overrides_tasks.js"></script>
+  <script defer src="js/ui/04_refresh_helpers.js"></script>
+  <script defer src="js/07_io.js"></script>
+  <script defer src="js/08_atlas_export.js"></script>
+  <script defer src="js/09_task_runner.js"></script>
+  <script defer src="js/events/00_core.js"></script>
+  <script defer src="js/events/01_template.js"></script>
+  <script defer src="js/events/02_rects.js"></script>
+  <script defer src="js/events/03_frames.js"></script>
+  <script defer src="js/events/04_assets.js"></script>
+  <script defer src="js/events/05_layers.js"></script>
+  <script defer src="js/events/06_tasks.js"></script>
+  <script defer src="js/card_identity.js"></script>
+  <script defer src="js/libraries/fileLibrary.js"></script>
+  <script defer src="js/libraries/machineLibrary.js"></script>
+  <script defer src="js/libraries/networkLibrary.js"></script>
+  <script defer src="js/libraries/repositoryLibrary.js"></script>
+  <script defer src="js/libraries/idManager_adapted.js"></script>
+  <script defer src="js/10_card_store.js"></script>
+  <script defer src="js/11_env_overlay_bridge.js"></script>
+  <script defer src="js/99_boot.js"></script>
+<script>
+/*
+  Portal-style card sizing (UI-driven), without changing your existing dependency graph.
+
+  What this does:
+   - Adds an always-available sizing state (ideal W/H, manual zoom, auto-fit).
+   - Replaces the global updateCardLayout/updateAllCardLayouts implementations at runtime
+     (after js/99_boot.js loads), so the slider can actually shrink cards below the old clamp.
+   - Keeps the SVG dieline-driven region variables, so card content stays correctly sized/placed.
+*/
+(function(){
+  const STORAGE_KEY = "tcgCardViewSettingsV2";
+
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const num = (v, fallback) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  function getFirstCard(){
+    return document.querySelector(".tcg-card");
+  }
+
+  function readComputedPx(el, varName, fallback){
+    if(!el) return fallback;
+    const raw = getComputedStyle(el).getPropertyValue(varName).trim();
+    const n = parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function loadState(seed){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return {...seed};
+      const parsed = JSON.parse(raw);
+      return {...seed, ...parsed};
+    }catch{
+      return {...seed};
+    }
+  }
+
+  function storeState(state){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch{}
+  }
+
+  function getCardContainer(){
+    // IMPORTANT: returns the outer container (first in document order).
+    return document.querySelector(".card-container") || document.documentElement;
+  }
+
+  function computeAutoFitZoom(state){
+    const cont = getCardContainer();
+    const pad = 36;
+    const availW = Math.max(80, (cont.clientWidth || cont.getBoundingClientRect().width || 0) - pad*2);
+    const availH = Math.max(80, (cont.clientHeight || cont.getBoundingClientRect().height || 0) - pad*2);
+    const maxFit = Number.isFinite(state.maxAutoFit) ? state.maxAutoFit : 1.0;
+
+    const z = Math.min(
+      maxFit,
+      availW / state.idealW,
+      availH / state.idealH
+    );
+    return clamp(z, 0.05, 10);
+  }
+
+  // Our replacement layout routine:
+  function updateCardLayout_portal(card, state){
+    if(!card) return;
+
+    const svg = card.querySelector(".card-layout");
+    if(!svg) return;
+
+    // Prefer helper from boot, fallback to parsing viewBox.
+    const viewBox = (typeof window.getViewBoxDimensions === "function")
+      ? window.getViewBoxDimensions(svg)
+      : (() => {
+          const vb = (svg.getAttribute("viewBox") || "0 0 1000 1400").trim().split(/\s+/).map(Number);
+          if(vb.length !== 4 || vb.some(n => !Number.isFinite(n))) return {x:0,y:0,width:1000,height:1400};
+          return {x:vb[0], y:vb[1], width:vb[2], height:vb[3]};
+        })();
+
+    if(!viewBox || !viewBox.width || !viewBox.height) return;
+
+    const idealW = clamp(num(state.idealW, 1000), 50, 20000);
+    const idealH = clamp(num(state.idealH, 1400), 50, 20000);
+
+    const zoomToApply = state.autoFit ? computeAutoFitZoom(state) : clamp(num(state.zoom, 1), 0.05, 10);
+
+    // Layout bounds from dieline ("safe"), unless autoLayout is disabled.
+    const layoutBounds = (state.autoLayout !== false && typeof window.getLayoutBounds === "function")
+      ? window.getLayoutBounds(svg, viewBox)
+      : null;
+
+    const cardWidth = idealW * zoomToApply;
+    const cardHeight = idealH * zoomToApply;
+
+    // Core size vars (these drive CSS width/height).
+    card.style.setProperty("--visual-grid-unit", zoomToApply);
+    card.style.setProperty("--card-w", `${cardWidth}px`);
+    card.style.setProperty("--card-h", `${cardHeight}px`);
+    card.style.setProperty("--card-ideal-w", `${idealW}px`);
+    card.style.setProperty("--card-ideal-h", `${idealH}px`);
+    card.style.setProperty("--card-zoom", String(zoomToApply));
+
+    // Scale from dieline units -> px.
+    const scaleX = zoomToApply * (idealW / viewBox.width);
+    const scaleY = zoomToApply * (idealH / viewBox.height);
+    const scale = Math.min(scaleX, scaleY);
+
+    card.style.setProperty("--card-scale", scale);
+    card.style.setProperty("--card-scale-x", scaleX);
+    card.style.setProperty("--card-scale-y", scaleY);
+
+    const layoutContainer = card.querySelector(".tcg-card__layout");
+    const layoutTarget = layoutContainer || card;
+
+    const layoutX = layoutBounds ? layoutBounds.x * scaleX : 0;
+    const layoutY = layoutBounds ? layoutBounds.y * scaleY : 0;
+    const layoutW = layoutBounds ? layoutBounds.width * scaleX : idealW * zoomToApply;
+    const layoutH = layoutBounds ? layoutBounds.height * scaleY : idealH * zoomToApply;
+
+    layoutTarget.style.width = `${layoutW}px`;
+    layoutTarget.style.height = `${layoutH}px`;
+    layoutTarget.style.setProperty("--layout-x", `${layoutX}px`);
+    layoutTarget.style.setProperty("--layout-y", `${layoutY}px`);
+    layoutTarget.style.setProperty("--layout-w", `${layoutW}px`);
+    layoutTarget.style.setProperty("--layout-h", `${layoutH}px`);
+    layoutTarget.style.setProperty("--content-h", `${layoutH}px`);
+
+    const content = card.querySelector(".tcg-card__content");
+    if(content){
+      content.style.width = `${layoutW}px`;
+    }
+
+    // Regions: push all [data-region] rects into CSS variables so HTML content can be positioned.
+    const regions = svg.querySelectorAll("[data-region]");
+    regions.forEach((region) => {
+      const name = region.dataset.region;
+      if(!name) return;
+      const x = num(region.getAttribute("x"), 0);
+      const y = num(region.getAttribute("y"), 0);
+      const w = num(region.getAttribute("width"), 0);
+      const h = num(region.getAttribute("height"), 0);
+      layoutTarget.style.setProperty(`--${name}-x`, `${x * scaleX}px`);
+      layoutTarget.style.setProperty(`--${name}-y`, `${y * scaleY}px`);
+      layoutTarget.style.setProperty(`--${name}-w`, `${w * scaleX}px`);
+      layoutTarget.style.setProperty(`--${name}-h`, `${h * scaleY}px`);
+
+      if(name === "section-gap" && h){
+        layoutTarget.style.setProperty("--section-gap", `${h * scaleY}px`);
+      }
+      if(name === "image" && h){
+        layoutTarget.style.setProperty("--image-h", `${h * scaleY}px`);
+      }
+      if(name === "header" && h){
+        layoutTarget.style.setProperty("--header-h", `${h * scaleY}px`);
+      }
+      if(name === "panels" && h){
+        layoutTarget.style.setProperty("--panels-h", `${h * scaleY}px`);
+      }
+      if(name === "footer"){
+        layoutTarget.style.setProperty("--footer-x", `${x * scaleX}px`);
+        layoutTarget.style.setProperty("--footer-y", `${y * scaleY}px`);
+        layoutTarget.style.setProperty("--footer-w", `${w * scaleX}px`);
+        layoutTarget.style.setProperty("--footer-h", `${h * scaleY}px`);
+      }
+    });
+
+    const baseScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+    layoutTarget.style.setProperty("--card-padding", `${18 * baseScale}px`);
+    layoutTarget.style.setProperty("--header-pad-x", `${14 * baseScale}px`);
+    layoutTarget.style.setProperty("--header-pad-y", `${10 * baseScale}px`);
+    layoutTarget.style.setProperty("--image-pad", `${10 * baseScale}px`);
+    layoutTarget.style.setProperty("--image-gap", `${6 * baseScale}px`);
+
+    // Keep adjacent panels aligned.
+    if(typeof window.updateControlsPosition === "function"){
+      window.updateControlsPosition(card);
+    }else{
+      // fallback (matches the old scalable-fixed approach)
+      const shell = card.closest(".card-shell");
+      const aside = shell ? shell.querySelector(".card-adjacent") : null;
+      if(shell && aside){
+        const shellRect = shell.getBoundingClientRect();
+        const cardRect  = card.getBoundingClientRect();
+        shell.style.setProperty("--card-right", `${cardRect.right - shellRect.left}px`);
+        shell.style.setProperty("--card-top",   `${cardRect.top   - shellRect.top}px`);
+      }
+    }
+  }
+
+  function bindUi(state){
+    const ui = {
+      idealW: document.getElementById("cardIdealW"),
+      idealH: document.getElementById("cardIdealH"),
+      autoFit: document.getElementById("cardAutoFit"),
+      zoom: document.getElementById("cardZoom"),
+      zoomOut: document.getElementById("cardZoomOut"),
+      autoLayout: document.getElementById("cardAutoLayout"),
+      apply: document.getElementById("cardApplySizing")
+    };
+
+    if(!ui.idealW || !ui.idealH || !ui.autoFit || !ui.zoom || !ui.zoomOut || !ui.autoLayout || !ui.apply){
+      return null; // UI absent -> nothing to bind
+    }
+
+    const syncUi = () => {
+      ui.idealW.value = String(state.idealW);
+      ui.idealH.value = String(state.idealH);
+      ui.autoFit.checked = !!state.autoFit;
+      ui.autoLayout.checked = state.autoLayout !== false;
+
+      ui.zoom.disabled = !!state.autoFit;
+      ui.zoom.value = String(clamp(state.autoFit ? computeAutoFitZoom(state) : state.zoom, 0.05, 10));
+      ui.zoomOut.textContent = `${(state.autoFit ? computeAutoFitZoom(state) : state.zoom).toFixed(2)}×`;
+    };
+
+    const readFromUi = () => {
+      state.idealW = clamp(num(ui.idealW.value, state.idealW), 50, 20000);
+      state.idealH = clamp(num(ui.idealH.value, state.idealH), 50, 20000);
+      state.autoFit = !!ui.autoFit.checked;
+      state.autoLayout = !!ui.autoLayout.checked;
+      state.zoom = clamp(num(ui.zoom.value, state.zoom), 0.05, 10);
+    };
+
+    const applyNow = () => {
+      readFromUi();
+      storeState(state);
+      // refresh all cards
+      const cards = document.querySelectorAll(".tcg-card");
+      cards.forEach(card => updateCardLayout_portal(card, state));
+      syncUi();
+    };
+
+    ui.apply.addEventListener("click", applyNow);
+    ui.autoFit.addEventListener("change", applyNow);
+    ui.autoLayout.addEventListener("change", applyNow);
+    ui.idealW.addEventListener("change", applyNow);
+    ui.idealH.addEventListener("change", applyNow);
+
+    ui.zoom.addEventListener("input", () => {
+      state.zoom = clamp(num(ui.zoom.value, state.zoom), 0.05, 10);
+      storeState(state);
+      if(!state.autoFit){
+        ui.zoomOut.textContent = `${state.zoom.toFixed(2)}×`;
+        const cards = document.querySelectorAll(".tcg-card");
+        cards.forEach(card => updateCardLayout_portal(card, state));
+      }
+    });
+
+    syncUi();
+    return {ui, syncUi, applyNow};
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // Seed defaults from current (boot-computed) card size so the page doesn't jump on first load.
+    const seedCard = getFirstCard();
+    const seededIdealW = seedCard ? readComputedPx(seedCard, "--card-ideal-w", 1000) : 1000;
+    const seededIdealH = seedCard ? readComputedPx(seedCard, "--card-ideal-h", 1400) : 1400;
+
+    const seededZoom = seedCard ? readComputedPx(seedCard, "--card-zoom", 1.0) : 1.0;
+
+    const seed = {
+      idealW: seededIdealW,
+      idealH: seededIdealH,
+      zoom: seededZoom,
+      autoFit: true,
+      autoLayout: true,
+      maxAutoFit: 1.0
+    };
+
+    const state = loadState(seed);
+
+    // Bind UI (if present)
+    const bound = bindUi(state);
+
+    // Hijack global layout functions so existing observers keep working,
+    // but now use the UI state instead of the old clamp logic.
+    try{
+      window.__updateCardLayoutOriginal = window.updateCardLayout;
+      window.__updateAllCardLayoutsOriginal = window.updateAllCardLayouts;
+    }catch{}
+
+    // Overwrite global bindings (works for non-module scripts).
+    window.updateCardLayout = function(card){
+      updateCardLayout_portal(card, state);
+    };
+    window.updateAllCardLayouts = function(){
+      document.querySelectorAll(".tcg-card").forEach(card => updateCardLayout_portal(card, state));
+      if(bound && bound.syncUi) bound.syncUi();
+    };
+
+    // Observe container resizes if autoFit is enabled.
+    const cont = getCardContainer();
+    if(window.ResizeObserver && cont){
+      const ro = new ResizeObserver(() => {
+        if(state.autoFit){
+          window.updateAllCardLayouts();
+        }
+      });
+      ro.observe(cont);
+    }else{
+      window.addEventListener("resize", () => {
+        if(state.autoFit){
+          window.updateAllCardLayouts();
+        }
+      }, {passive:true});
+    }
+
+    // First pass + late pass (other scripts may mutate card DOM shortly after load)
+    window.updateAllCardLayouts();
+    setTimeout(window.updateAllCardLayouts, 100);
+    setTimeout(window.updateAllCardLayouts, 500);
+  });
+})();
+</script>
+
+</body>
+</html>

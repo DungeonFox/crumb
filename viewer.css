@@ -1,0 +1,7 @@
+body{margin:0;background:#0b0d10;color:#e8eef7;font-family:ui-sans-serif,system-ui;display:flex;flex-direction:column;height:100vh}
+header{padding:8px 10px;border-bottom:1px solid #233040;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:12px;color:#9aa7b6}
+button{background:#16202b;color:#e8eef7;border:1px solid #233040;padding:6px 10px;border-radius:8px;cursor:pointer}
+button:hover{border-color:#36506c}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:10px;min-height:0}
+canvas{background:#0a0d12;border:1px solid #233040;border-radius:10px;max-width:100%;height:auto;image-rendering:pixelated}

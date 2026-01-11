@@ -1,0 +1,170 @@
+{
+  "roots": {
+    "tasks": [
+      "tsk:0xshudderH_20_38"
+    ]
+  },
+  "nodes": {
+    "tsk:0xshudderH_20_38": {
+      "type": "Task",
+      "name": "Chest Shudder (H) Frames 20-38",
+      "commands": [
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 20,
+          "left": "CLl - 3",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 21,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 22,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 23,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 24,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 25,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 26,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 27,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 28,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 29,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 30,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 31,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 32,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 33,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 34,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 35,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 36,
+          "left": "CLl - 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 37,
+          "left": "CLl + 6",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 38,
+          "left": "CLl - 3",
+          "duration": 10,
+          "ease": "linear",
+          "repeat": false
+        }
+      ],
+      "meta": {
+        "kind": "tasker"
+      }
+    }
+  }
+}

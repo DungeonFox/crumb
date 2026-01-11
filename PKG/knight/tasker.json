@@ -1,0 +1,51 @@
+{
+  "manifestVersion": 1,
+  "nodes": {
+    "tsk:knight_patrol": {
+      "type": "Task",
+      "name": "Knight Patrol (scaled to 100f@30ms)",
+      "commands": [
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 0,
+          "left": "CLl + 30",
+          "duration": 750,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 25,
+          "top": "CLt + 20",
+          "duration": 750,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 50,
+          "left": "CLl - 30",
+          "duration": 750,
+          "ease": "inOutCubic",
+          "repeat": true
+        },
+        {
+          "cmd": "setWindowGeometryOnFrame",
+          "frameIndex": 75,
+          "top": "CLt - 20",
+          "duration": 750,
+          "ease": "inOutCubic",
+          "repeat": true
+        }
+      ],
+      "meta": {
+        "kind": "tasker"
+      }
+    }
+  },
+  "roots": {
+    "tasks": [
+      "tsk:knight_patrol"
+    ]
+  }
+}
