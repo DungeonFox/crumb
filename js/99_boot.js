@@ -67,6 +67,19 @@
     styleTarget.setProperty("--controls-height", `${rect.height}px`);
   }
 
+  function createDebouncedRenderer(card, delay = 80){
+    let timeoutId = null;
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        timeoutId = null;
+        if (typeof window.renderCardTextSvg === "function"){
+          window.renderCardTextSvg(card);
+        }
+      }, delay);
+    };
+  }
+
   function getViewBoxDimensions(svg){
     if (svg && svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width){
       return svg.viewBox.baseVal;
@@ -288,20 +301,27 @@
 
   function initControlsPositioning(card){
     if (!card || cardControlObservers.has(card)) return;
-    const handler = () => updateControlsPosition(card);
+    const scheduleRender = createDebouncedRenderer(card);
+    const handler = () => {
+      updateControlsPosition(card);
+      scheduleRender();
+    };
     window.addEventListener("scroll", handler, {passive: true});
     const scrollContainer = getScrollContainer(card);
     if (scrollContainer && scrollContainer !== window){
       scrollContainer.addEventListener("scroll", handler, {passive: true});
     }
     const container = resolveCardContainer(card);
-    if (container){
-      const observer = new ResizeObserver(handler);
-      observer.observe(container);
-      cardControlObservers.set(card, {handler, scrollContainer, observer});
-    } else {
-      cardControlObservers.set(card, {handler, scrollContainer, observer: null});
-    }
+    const observer = container ? new ResizeObserver(handler) : null;
+    if (observer && container) observer.observe(container);
+    const cardObserver = new ResizeObserver(handler);
+    cardObserver.observe(card);
+    cardControlObservers.set(card, {
+      handler,
+      scrollContainer,
+      observer,
+      cardObserver
+    });
   }
 
   function initCardLayout(root){
