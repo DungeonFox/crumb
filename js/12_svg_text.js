@@ -216,6 +216,27 @@
     return flat;
   }
 
+  function normalizeArea(area){
+    const left = Number.isFinite(area?.left) ? area.left : 0;
+    const top = Number.isFinite(area?.top) ? area.top : 0;
+    const right = Number.isFinite(area?.right)
+      ? area.right
+      : (Number.isFinite(area?.width) ? left + area.width : left);
+    const bottom = Number.isFinite(area?.bottom)
+      ? area.bottom
+      : (Number.isFinite(area?.height) ? top + area.height : top);
+    const width = Number.isFinite(area?.width) ? area.width : Math.max(0, right - left);
+    const height = Number.isFinite(area?.height) ? area.height : Math.max(0, bottom - top);
+    return {
+      left,
+      top,
+      right: left + width,
+      bottom: top + height,
+      width,
+      height
+    };
+  }
+
   function computePlacements(config){
     const text = (config.text || "").trim();
     if (!text) return { placements: [], lines: [] };
@@ -231,7 +252,7 @@
     const align = config.align || "left";
     const breakLongWords = Boolean(config.breakLongWords);
 
-    const area = config.area;
+    const area = normalizeArea(config.area || {});
     const maxWidthUnits = Math.max(1, (area.width - 2 * paddingPx) / scale);
     const trackingUnits = trackingPx / scale;
 
@@ -395,6 +416,36 @@
     return fontSizePx * 1.2;
   }
 
+  function getEdgePx(style, varName, fallback){
+    const raw = style.getPropertyValue(varName);
+    if (raw && raw.trim() !== ""){
+      const parsed = parsePx(raw, fallback);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return fallback;
+  }
+
+  function getTextHostArea(host){
+    const rect = host.getBoundingClientRect();
+    const width = host.clientWidth || rect.width;
+    const height = host.clientHeight || rect.height;
+    const style = window.getComputedStyle(host);
+    const edgeLeft = getEdgePx(style, "--text-left", parsePx(style.paddingLeft, 0));
+    const edgeRight = getEdgePx(style, "--text-right", parsePx(style.paddingRight, 0));
+    const edgeTop = getEdgePx(style, "--text-top", parsePx(style.paddingTop, 0));
+    const edgeBottom = getEdgePx(style, "--text-bottom", parsePx(style.paddingBottom, 0));
+    const innerWidth = Math.max(0, width - edgeLeft - edgeRight);
+    const innerHeight = Math.max(0, height - edgeTop - edgeBottom);
+    return {
+      width: innerWidth,
+      height: innerHeight,
+      edgeLeft,
+      edgeRight,
+      edgeTop,
+      edgeBottom
+    };
+  }
+
   const cardTextResizeObservers = new WeakMap();
 
   function getCardTextSource(container){
@@ -428,6 +479,24 @@
       entry.observer.observe(block.source);
       entry.elements.add(block.source);
     });
+  }
+
+  function renderTextHostSvg(host, role, options){
+    const svg = getOrCreateCardTextSvg(host, role);
+    if (!svg) return null;
+
+    const area = getTextHostArea(host);
+    if (!area.width || !area.height) return null;
+
+    svg.style.width = `${area.width}px`;
+    svg.style.height = `${area.height}px`;
+    svg.style.transform = `translate(${area.edgeLeft}px, ${area.edgeTop}px)`;
+    svg.style.transformOrigin = "top left";
+    svg.setAttribute("width", `${area.width}`);
+    svg.setAttribute("height", `${area.height}`);
+    svg.setAttribute("viewBox", `0 0 ${area.width} ${area.height}`);
+
+    return { svg, area, options };
   }
 
   function renderUiLabelsSvg(cardRoot){
@@ -540,18 +609,12 @@
 
     blocks.forEach((block) => {
       if (!block.source) return;
-      const svg = getOrCreateCardTextSvg(block.source, block.role);
-      if (!svg) return;
+      const renderInfo = renderTextHostSvg(block.source, block.role, block);
+      if (!renderInfo) return;
+
+      const { svg, area } = renderInfo;
       const textSource = getCardTextSource(block.source);
       const text = textSource ? String(textSource.textContent || "").trim() : "";
-      const rect = block.source.getBoundingClientRect();
-      const areaWidth = Math.max(0, block.source.offsetWidth || rect.width);
-      const areaHeight = Math.max(0, block.source.offsetHeight || rect.height);
-      if (!areaWidth || !areaHeight) return;
-
-      svg.setAttribute("width", `${areaWidth}`);
-      svg.setAttribute("height", `${areaHeight}`);
-      svg.setAttribute("viewBox", `0 0 ${areaWidth} ${areaHeight}`);
 
       clearGlyphLayers(svg);
 
@@ -563,7 +626,7 @@
       const trackingPx = parsePx(sourceStyle.letterSpacing, 0);
       const fill = sourceStyle.color || "rgba(235,240,255,.95)";
       const maxLines = block.allowWrap
-        ? Math.max(1, Math.floor((areaHeight - block.paddingPx * 2) / Math.max(lineHeightPx, 1)))
+        ? Math.max(1, Math.floor((area.height - block.paddingPx * 2) / Math.max(lineHeightPx, 1)))
         : 1;
 
       renderTextGroup(svg, {
@@ -571,8 +634,10 @@
         area: {
           left: 0,
           top: 0,
-          width: areaWidth,
-          height: areaHeight
+          right: area.width,
+          bottom: area.height,
+          width: area.width,
+          height: area.height
         },
         fontSizePx,
         lineHeightPx,
