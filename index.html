@@ -847,13 +847,6 @@ END README
     layoutTarget.style.setProperty("--image-pad", `${10 * baseScale}px`);
     layoutTarget.style.setProperty("--image-gap", `${6 * baseScale}px`);
 
-    if(typeof window.renderCardTextSvg === "function"){
-      window.renderCardTextSvg(card);
-    }
-    if(typeof window.renderUiLabelsSvg === "function"){
-      window.renderUiLabelsSvg(card);
-    }
-
     // Keep adjacent panels aligned.
     if(typeof window.updateControlsPosition === "function"){
       window.updateControlsPosition(card);
@@ -867,6 +860,13 @@ END README
         shell.style.setProperty("--card-right", `${cardRect.right - shellRect.left}px`);
         shell.style.setProperty("--card-top",   `${cardRect.top   - shellRect.top}px`);
       }
+    }
+
+    if(typeof window.renderCardTextSvg === "function"){
+      window.renderCardTextSvg(card);
+    }
+    if(typeof window.renderUiLabelsSvg === "function"){
+      window.renderUiLabelsSvg(card);
     }
   }
 
