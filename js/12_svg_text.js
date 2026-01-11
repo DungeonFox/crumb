@@ -494,7 +494,11 @@
     const content = layoutTarget.querySelector(".tcg-card__content");
     if (!content) return;
 
-    const cardScale = readBaseMetric(layoutStyle, "--card-scale", 1);
+    const layoutX = readBaseMetric(layoutStyle, "--layout-x", 0);
+    const layoutY = readBaseMetric(layoutStyle, "--layout-y", 0);
+    const cardZoom = readBaseMetric(layoutStyle, "--card-zoom", 1);
+    const cardScale = readBaseMetric(layoutStyle, "--card-scale", cardZoom);
+    const layoutScale = Number.isFinite(cardScale) && cardScale > 0 ? cardScale : cardZoom;
     const headerX = readBaseMetric(layoutStyle, "--header-x", 0);
     const headerY = readBaseMetric(layoutStyle, "--header-y", 0);
     const headerW = readBaseMetric(layoutStyle, "--header-w", 0);
@@ -532,7 +536,7 @@
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
-        paddingPx: 12 * cardScale,
+        paddingPx: 12 * layoutScale,
         allowWrap: true
       },
       {
@@ -544,7 +548,7 @@
           width: Math.max(0, panelsW),
           height: Math.max(0, sectionHeight)
         },
-        paddingPx: 12 * cardScale,
+        paddingPx: 12 * layoutScale,
         allowWrap: true
       }
     ];
@@ -554,20 +558,23 @@
       if (!svg) return;
       const text = block.source ? String(block.source.textContent || "").trim() : "";
       const renderArea = {
-        left: block.area.left,
-        top: block.area.top,
+        left: block.area.left + layoutX,
+        top: block.area.top + layoutY,
         width: block.area.width,
         height: block.area.height
       };
 
+      const areaWidth = Math.max(0, renderArea.width);
+      const areaHeight = Math.max(0, renderArea.height);
+
       svg.style.position = "absolute";
       svg.style.left = `${renderArea.left}px`;
       svg.style.top = `${renderArea.top}px`;
-      svg.style.width = `${renderArea.width}px`;
-      svg.style.height = `${renderArea.height}px`;
-      svg.setAttribute("width", `${renderArea.width}`);
-      svg.setAttribute("height", `${renderArea.height}`);
-      svg.setAttribute("viewBox", `0 0 ${renderArea.width} ${renderArea.height}`);
+      svg.style.width = `${areaWidth}px`;
+      svg.style.height = `${areaHeight}px`;
+      svg.setAttribute("width", `${areaWidth}`);
+      svg.setAttribute("height", `${areaHeight}`);
+      svg.setAttribute("viewBox", `0 0 ${areaWidth} ${areaHeight}`);
 
       clearGlyphLayers(svg);
 
@@ -579,9 +586,9 @@
       const baseLetterSpacing = parsePx(sourceStyle.letterSpacing, 0);
       const fill = sourceStyle.color || "rgba(235,240,255,.95)";
 
-      const fontSizePx = baseFontSize * cardScale;
-      const lineHeightPx = baseLineHeight * cardScale;
-      const trackingPx = baseLetterSpacing * cardScale;
+      const fontSizePx = baseFontSize * layoutScale;
+      const lineHeightPx = baseLineHeight * layoutScale;
+      const trackingPx = baseLetterSpacing * layoutScale;
       const maxLines = Math.max(1, Math.floor((renderArea.height - block.paddingPx * 2) / lineHeightPx));
 
       renderTextGroup(svg, {
@@ -589,8 +596,8 @@
         area: {
           left: 0,
           top: 0,
-          width: renderArea.width,
-          height: renderArea.height
+          width: areaWidth,
+          height: areaHeight
         },
         fontSizePx,
         lineHeightPx,
