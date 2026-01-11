@@ -484,17 +484,17 @@
       : cardRoot?.querySelector?.(".tcg-card");
     if (!card) return;
 
-    const layoutTarget = card.querySelector(".tcg-card__layout") || card;
+    const layoutContainer = card.querySelector(".tcg-card__layout") || card;
+    const layer = layoutContainer.querySelector(".card-text-svg-layer")
+      || card.querySelector(".card-text-svg-layer");
+    if (!layer) return;
+
+    const layoutTarget = layer.parentElement || layoutContainer;
     const layoutStyle = window.getComputedStyle(layoutTarget);
     const content = layoutTarget.querySelector(".tcg-card__content");
     if (!content) return;
 
-    const layer = layoutTarget.querySelector(".card-text-svg-layer");
-    if (!layer) return;
-
     const cardScale = readBaseMetric(layoutStyle, "--card-scale", 1);
-    const layoutX = readBaseMetric(layoutStyle, "--layout-x", 0);
-    const layoutY = readBaseMetric(layoutStyle, "--layout-y", 0);
     const headerX = readBaseMetric(layoutStyle, "--header-x", 0);
     const headerY = readBaseMetric(layoutStyle, "--header-y", 0);
     const headerW = readBaseMetric(layoutStyle, "--header-w", 0);
@@ -554,8 +554,8 @@
       if (!svg) return;
       const text = block.source ? String(block.source.textContent || "").trim() : "";
       const renderArea = {
-        left: block.area.left + layoutX,
-        top: block.area.top + layoutY,
+        left: block.area.left,
+        top: block.area.top,
         width: block.area.width,
         height: block.area.height
       };
