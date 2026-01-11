@@ -13,7 +13,8 @@
       const templateCard = seedCard.cloneNode(true);
       templateCard.dataset.cardId = "";
       const title = templateCard.querySelector('[data-role="card-title"]');
-      if (title) title.textContent = "";
+      const titleText = title ? (title.querySelector(".card-text-source") || title) : null;
+      if (titleText) titleText.textContent = "";
       const panelHosts = templateCard.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
       panelHosts.forEach((panelHost) => {
         panelHost.dataset.cardId = "";
@@ -342,7 +343,8 @@
     const safeId = cardId || root.dataset.cardId || "";
     root.dataset.cardId = safeId;
     const title = $role(root, "card-title");
-    if (title) title.textContent = `Sprite Editor Deck · ${safeId}`;
+    const titleText = title ? (title.querySelector(".card-text-source") || title) : null;
+    if (titleText) titleText.textContent = `Sprite Editor Deck · ${safeId}`;
     if (typeof window.renderCardTextSvg === "function"){
       window.renderCardTextSvg(root);
     }

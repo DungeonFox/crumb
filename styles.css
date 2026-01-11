@@ -180,20 +180,17 @@
     align-items:center;
     gap:10px;
   }
-  .card-text-svg-layer{
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    z-index:2;
+  .card-text-host{
+    display:inline-grid;
+  }
+  .card-text-host > *{
+    grid-area:1 / 1;
   }
   .card-text-svg{
-    position:absolute;
-    left:0;
-    top:0;
-    width:0;
-    height:0;
+    width:100%;
+    height:100%;
     display:block;
-    overflow:visible;
+    pointer-events:none;
   }
   .card-text-source{
     visibility:hidden;
