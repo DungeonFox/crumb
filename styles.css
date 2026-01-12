@@ -147,7 +147,6 @@
       var(--panels-h)
       var(--footer-h);
     align-content:start;
-    overflow:hidden;
   }
   .card-layout{
     position:absolute;
