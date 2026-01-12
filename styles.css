@@ -158,9 +158,9 @@
       var(--section-gap)
       var(--image-h)
       var(--panels-h)
-      minmax(var(--footer-h, 0px), auto);
+      minmax(var(--footer-h, 0px), var(--footer-h-content, auto));
     align-content:start;
-    overflow:hidden;
+    overflow:visible;
   }
   .card-layout{
     position:absolute;
