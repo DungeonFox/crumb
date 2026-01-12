@@ -51,7 +51,8 @@
     const cardShell = card.closest(".card-shell") || card;
     const container = resolveCardContainer(card);
     const scrollContainer = getScrollContainer(card);
-    const useViewport = scrollContainer === window;
+    const useViewport = scrollContainer === window
+      || (scrollContainer instanceof Element && scrollContainer.classList.contains("portal-stage"));
     cardShell.dataset.controlsPosition = useViewport ? "viewport" : "container";
     const cardRect = card.getBoundingClientRect();
     const rect = controls.getBoundingClientRect();
