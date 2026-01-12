@@ -303,6 +303,7 @@
     const layoutStyle = window.getComputedStyle(layoutTarget);
     const baseFooterH = Number.parseFloat(layoutStyle.getPropertyValue("--footer-h")) || 0;
     const renderedFooterH = footer.getBoundingClientRect().height;
+    layoutTarget.style.setProperty("--footer-h-content", `${renderedFooterH}px`);
     if (renderedFooterH > baseFooterH){
       layoutTarget.style.setProperty("--footer-h", `${renderedFooterH}px`);
     }
