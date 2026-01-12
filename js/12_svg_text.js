@@ -250,6 +250,7 @@
     const trackingPx = config.trackingPx || 0;
     const lineHeightPx = Math.max(config.lineHeightPx || config.fontSizePx, 1);
     const align = config.align || "left";
+    const verticalAlign = config.verticalAlign || "top";
     const breakLongWords = Boolean(config.breakLongWords);
 
     const area = normalizeArea(config.area || {});
@@ -270,12 +271,46 @@
 
     const lines = linesRes.lines;
     const placements = [];
+    const lineBlockHeightPx = lineHeightPx * lines.length;
+
+    let blockTop = area.top + paddingPx;
+    let baselineStart = blockTop + lineHeightPx;
+
+    if (Number.isFinite(config.baselinePx)){
+      baselineStart = area.top + config.baselinePx;
+      blockTop = baselineStart - lineHeightPx;
+    } else if (Number.isFinite(config.slotTopPx) && Number.isFinite(config.slotBottomPx)){
+      const slotTop = area.top + config.slotTopPx;
+      const slotBottom = area.top + config.slotBottomPx;
+      const slotHeight = Math.max(0, slotBottom - slotTop);
+      if (verticalAlign === "center" || verticalAlign === "middle"){
+        blockTop = slotTop + (slotHeight - lineBlockHeightPx) / 2;
+      } else if (verticalAlign === "bottom"){
+        blockTop = slotBottom - lineBlockHeightPx;
+      } else {
+        blockTop = slotTop;
+      }
+      baselineStart = blockTop + lineHeightPx;
+    } else if (Number.isFinite(config.slotBottomPx)){
+      baselineStart = area.top + config.slotBottomPx;
+      blockTop = baselineStart - lineHeightPx;
+    } else {
+      const innerHeight = Math.max(0, area.height - paddingPx * 2);
+      if (verticalAlign === "center" || verticalAlign === "middle"){
+        blockTop = area.top + paddingPx + (innerHeight - lineBlockHeightPx) / 2;
+      } else if (verticalAlign === "bottom"){
+        blockTop = area.top + area.height - paddingPx - lineBlockHeightPx;
+      } else {
+        blockTop = area.top + paddingPx;
+      }
+      baselineStart = blockTop + lineHeightPx;
+    }
 
     for (let li = 0; li < lines.length; li++){
       const lineKeys = lines[li];
       const m = measureGlyphRunUnits(lineKeys, trackingUnits);
       const lineWidthPx = m.width * scale;
-      const bottom = area.top + paddingPx + lineHeightPx * (li + 1);
+      const bottom = baselineStart + lineHeightPx * li;
 
       let xStart;
       if (align === "center"){
@@ -425,24 +460,53 @@
     return fallback;
   }
 
+  function getOptionalPx(style, varName){
+    const raw = style.getPropertyValue(varName);
+    if (!raw || raw.trim() === "") return null;
+    const parsed = parsePx(raw, NaN);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  function getVerticalAlign(style){
+    const raw = style.getPropertyValue("--text-vertical-align") || style.getPropertyValue("--text-valign");
+    const normalized = raw.trim().toLowerCase();
+    if (normalized) return normalized;
+    if (style.display.includes("flex")){
+      if (style.alignItems === "center") return "center";
+      if (style.alignItems === "flex-end") return "bottom";
+    }
+    return "top";
+  }
+
   function getTextHostArea(host){
     const rect = host.getBoundingClientRect();
-    const width = host.clientWidth || rect.width;
-    const height = host.clientHeight || rect.height;
     const style = window.getComputedStyle(host);
+    const width = rect.width;
+    const height = rect.height;
     const edgeLeft = getEdgePx(style, "--text-left", parsePx(style.paddingLeft, 0));
     const edgeRight = getEdgePx(style, "--text-right", parsePx(style.paddingRight, 0));
     const edgeTop = getEdgePx(style, "--text-top", parsePx(style.paddingTop, 0));
     const edgeBottom = getEdgePx(style, "--text-bottom", parsePx(style.paddingBottom, 0));
     const innerWidth = Math.max(0, width - edgeLeft - edgeRight);
     const innerHeight = Math.max(0, height - edgeTop - edgeBottom);
+    const baselinePx = getOptionalPx(style, "--text-baseline") ?? getOptionalPx(style, "--slot-bottom");
+    const slotTopPx = getOptionalPx(style, "--slot-top");
+    const slotBottomPx = getOptionalPx(style, "--slot-bottom")
+      ?? ((getOptionalPx(style, "--text-bottom") != null && getOptionalPx(style, "--text-top") == null)
+        ? Math.max(0, innerHeight - getOptionalPx(style, "--text-bottom"))
+        : null);
+    const verticalAlign = getVerticalAlign(style);
     return {
       width: innerWidth,
       height: innerHeight,
       edgeLeft,
       edgeRight,
       edgeTop,
-      edgeBottom
+      edgeBottom,
+      baselinePx,
+      slotTopPx,
+      slotBottomPx,
+      verticalAlign
     };
   }
 
@@ -515,8 +579,8 @@
 
       const source = host.querySelector(".card-text-source") || host;
       const text = String(source.textContent || "").trim();
-      const rect = host.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+      const area = getTextHostArea(host);
+      if (!area.width || !area.height) return;
 
       if (source === host && !host.classList.contains("card-text-source")){
         host.style.color = "transparent";
@@ -525,11 +589,13 @@
       svg.style.position = "absolute";
       svg.style.left = "0";
       svg.style.top = "0";
-      svg.style.width = `${rect.width}px`;
-      svg.style.height = `${rect.height}px`;
-      svg.setAttribute("width", `${rect.width}`);
-      svg.setAttribute("height", `${rect.height}`);
-      svg.setAttribute("viewBox", `0 0 ${rect.width} ${rect.height}`);
+      svg.style.width = `${area.width}px`;
+      svg.style.height = `${area.height}px`;
+      svg.style.transform = `translate(${area.edgeLeft}px, ${area.edgeTop}px)`;
+      svg.style.transformOrigin = "top left";
+      svg.setAttribute("width", `${area.width}`);
+      svg.setAttribute("height", `${area.height}`);
+      svg.setAttribute("viewBox", `0 0 ${area.width} ${area.height}`);
 
       clearGlyphLayers(svg);
       if (!text) return;
@@ -550,7 +616,7 @@
       const fill = sourceStyle.color || "rgba(235,240,255,.95)";
       const allowWrap = host.dataset.uiWrap === "true";
       const maxLines = allowWrap
-        ? Math.max(1, Math.floor((rect.height - paddingPx * 2) / Math.max(lineHeightPx, 1)))
+        ? Math.max(1, Math.floor((area.height - paddingPx * 2) / Math.max(lineHeightPx, 1)))
         : 1;
 
       renderTextGroup(svg, {
@@ -558,8 +624,8 @@
         area: {
           left: 0,
           top: 0,
-          width: rect.width,
-          height: rect.height
+          width: area.width,
+          height: area.height
         },
         fontSizePx,
         lineHeightPx,
@@ -570,7 +636,11 @@
         allowWrap,
         breakLongWords: false,
         fill,
-        opacity: 1
+        opacity: 1,
+        baselinePx: area.baselinePx,
+        slotTopPx: area.slotTopPx,
+        slotBottomPx: area.slotBottomPx,
+        verticalAlign: area.verticalAlign
       });
     });
   }
@@ -648,7 +718,11 @@
         allowWrap: block.allowWrap,
         breakLongWords: false,
         fill,
-        opacity: 1
+        opacity: 1,
+        baselinePx: area.baselinePx,
+        slotTopPx: area.slotTopPx,
+        slotBottomPx: area.slotBottomPx,
+        verticalAlign: area.verticalAlign
       });
     });
   }
