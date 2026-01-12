@@ -9,17 +9,23 @@
   const cardTemplate = document.getElementById("card-template");
   if (cardTemplate && cardTemplate.content && !cardTemplate.content.children.length){
     const seedCard = document.querySelector(".card-shell");
+    const seedPanel = document.querySelector(".card-adjacent");
     if (seedCard){
       const templateCard = seedCard.cloneNode(true);
       templateCard.dataset.cardId = "";
       const title = templateCard.querySelector('[data-role="card-title"]');
       const titleText = title ? (title.querySelector(".card-text-source") || title) : null;
       if (titleText) titleText.textContent = "";
-      const panelHosts = templateCard.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
-      panelHosts.forEach((panelHost) => {
-        panelHost.dataset.cardId = "";
-      });
       cardTemplate.content.appendChild(templateCard);
+      if (seedPanel){
+        const templatePanel = seedPanel.cloneNode(true);
+        const panelHosts = templatePanel.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
+        panelHosts.forEach((panelHost) => {
+          panelHost.dataset.cardId = "";
+        });
+        templatePanel.dataset.cardId = "";
+        cardTemplate.content.appendChild(templatePanel);
+      }
     }
   }
   const IDEAL_CARD_WIDTH = 1000;
@@ -53,6 +59,10 @@
     const scrollContainer = getScrollContainer(card);
     const useViewport = scrollContainer === window;
     cardShell.dataset.controlsPosition = useViewport ? "viewport" : "container";
+    const cardId = cardShell.dataset?.cardId || "";
+    const safeCardId = (window.CSS && typeof window.CSS.escape === "function")
+      ? window.CSS.escape(cardId)
+      : String(cardId).replace(/"/g, '\\"');
     const cardRect = card.getBoundingClientRect();
     const rect = controls.getBoundingClientRect();
     const containerRect = container && !useViewport ? container.getBoundingClientRect() : {left: 0, top: 0};
@@ -60,7 +70,12 @@
     const containerScrollTop = container && !useViewport ? container.scrollTop : 0;
     const offsetX = useViewport ? 0 : containerRect.left - containerScrollLeft;
     const offsetY = useViewport ? 0 : containerRect.top - containerScrollTop;
-    const styleTarget = cardShell.style;
+    const panelScope = container
+      ? (cardId
+        ? container.querySelector(`.card-adjacent[data-card-id="${safeCardId}"]`)
+        : container.querySelector(".card-adjacent"))
+      : null;
+    const styleTarget = panelScope ? panelScope.style : cardShell.style;
     styleTarget.setProperty("--card-right", `${cardRect.right - offsetX}px`);
     styleTarget.setProperty("--card-top", `${cardRect.top - offsetY}px`);
     styleTarget.setProperty("--controls-right", `${rect.right - offsetX}px`);
@@ -351,10 +366,13 @@
     if (typeof window.renderUiLabelsSvg === "function"){
       window.renderUiLabelsSvg(root);
     }
-    const panelHosts = root.querySelectorAll(".card-adjacent, .card-adjacent [data-panel]");
-    panelHosts.forEach((panelHost) => {
-      panelHost.dataset.cardId = safeId;
-    });
+    const panelScope = (typeof getPanelScope === "function") ? getPanelScope(root) : null;
+    if (panelScope){
+      panelScope.dataset.cardId = safeId;
+      panelScope.querySelectorAll("[data-panel]").forEach((panelHost) => {
+        panelHost.dataset.cardId = safeId;
+      });
+    }
   }
 
   function getExistingCardIds(){
@@ -610,7 +628,7 @@ function cloneCardTemplate(){
       const target = toggle.getAttribute("data-panel-toggle");
       const panelScope = (typeof getPanelScope === "function")
         ? getPanelScope(root)
-        : (root.querySelector(".card-adjacent") || root);
+        : (root.closest(".card-container")?.querySelector(".card-adjacent") || root);
       const panel = panelScope ? panelScope.querySelector(`[data-panel="${target}"]`) : null;
       if (!panel) return;
       toggle.addEventListener("click", () => {

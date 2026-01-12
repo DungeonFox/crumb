@@ -578,6 +578,7 @@ END README
       </div>
     </div>
     </div>
+  </div>
   <aside class="card-adjacent" data-card-id="" aria-label="Supplemental preview panels">
     <section class="panel side-panel" data-panel="registry" data-card-id="">
       <h2>
@@ -631,7 +632,6 @@ END README
       </div>
     </section>
   </aside>
-  </div>
 </div>
 </div>
 </div>
@@ -857,12 +857,22 @@ END README
     }else{
       // fallback (matches the old scalable-fixed approach)
       const shell = card.closest(".card-shell");
-      const aside = shell ? shell.querySelector(".card-adjacent") : null;
+      const container = shell ? shell.closest(".card-container") : null;
+      const cardId = shell?.dataset?.cardId || "";
+      const safeCardId = (window.CSS && typeof window.CSS.escape === "function")
+        ? window.CSS.escape(cardId)
+        : String(cardId).replace(/"/g, '\\"');
+      const aside = container
+        ? (cardId
+          ? container.querySelector(`.card-adjacent[data-card-id="${safeCardId}"]`)
+          : container.querySelector(".card-adjacent"))
+        : null;
       if(shell && aside){
         const shellRect = shell.getBoundingClientRect();
         const cardRect  = card.getBoundingClientRect();
-        shell.style.setProperty("--card-right", `${cardRect.right - shellRect.left}px`);
-        shell.style.setProperty("--card-top",   `${cardRect.top   - shellRect.top}px`);
+        const styleTarget = aside.style;
+        styleTarget.setProperty("--card-right", `${cardRect.right - shellRect.left}px`);
+        styleTarget.setProperty("--card-top",   `${cardRect.top   - shellRect.top}px`);
       }
     }
 
