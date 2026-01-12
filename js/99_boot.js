@@ -128,15 +128,21 @@
       }
       return null;
     };
-    const safeRegion = svg.querySelector('[data-region="safe"]');
-    const safeBounds = getRegionBounds(safeRegion);
-    if (safeBounds) return safeBounds;
     const regions = Array.from(svg.querySelectorAll("[data-region]"));
     let minX = Number.POSITIVE_INFINITY;
     let minY = Number.POSITIVE_INFINITY;
     let maxX = Number.NEGATIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
+
+    if (viewBox && Number.isFinite(viewBox.width) && Number.isFinite(viewBox.height)){
+      minX = viewBox.x;
+      minY = viewBox.y;
+      maxX = viewBox.x + viewBox.width;
+      maxY = viewBox.y + viewBox.height;
+    }
+
     regions.forEach((region) => {
+      if (region.dataset?.region === "safe") return;
       const bounds = getRegionBounds(region);
       if (!bounds) return;
       minX = Math.min(minX, bounds.x);
@@ -144,6 +150,7 @@
       maxX = Math.max(maxX, bounds.x + bounds.width);
       maxY = Math.max(maxY, bounds.y + bounds.height);
     });
+
     if (!Number.isFinite(minX) || !Number.isFinite(minY) || !Number.isFinite(maxX) || !Number.isFinite(maxY)){
       return viewBox;
     }
