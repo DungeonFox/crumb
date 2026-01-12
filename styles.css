@@ -158,6 +158,7 @@
     opacity:0;
   }
   .card-header{
+    position:relative;
     grid-row:1;
     height: max(12px, var(--header-h, 0px));
     display:flex;
@@ -187,6 +188,8 @@
     grid-area:1 / 1;
   }
   .card-text-svg{
+    position:absolute;
+    inset:0;
     width:100%;
     height:100%;
     display:block;
@@ -342,6 +345,7 @@
   .card-type,
   .card-text,
   .card-task{
+    position:relative;
     display:flex;
     flex-direction:column;
     gap:10px;

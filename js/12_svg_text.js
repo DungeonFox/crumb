@@ -469,10 +469,11 @@
     return fallback;
   }
 
-  function getTextHostArea(host){
-    const rect = host.getBoundingClientRect();
-    const width = host.clientWidth || rect.width;
-    const height = host.clientHeight || rect.height;
+  function getTextHostArea(host, container){
+    const hostRect = host.getBoundingClientRect();
+    const containerRect = container?.getBoundingClientRect ? container.getBoundingClientRect() : hostRect;
+    const width = host.clientWidth || hostRect.width;
+    const height = host.clientHeight || hostRect.height;
     const style = window.getComputedStyle(host);
     const edgeLeft = getEdgePx(style, "--text-left", parsePx(style.paddingLeft, 0));
     const edgeRight = getEdgePx(style, "--text-right", parsePx(style.paddingRight, 0));
@@ -480,13 +481,13 @@
     const edgeBottom = getEdgePx(style, "--text-bottom", parsePx(style.paddingBottom, 0));
     const innerWidth = Math.max(0, width - edgeLeft - edgeRight);
     const innerHeight = Math.max(0, height - edgeTop - edgeBottom);
+    const offsetX = hostRect.left - containerRect.left;
+    const offsetY = hostRect.top - containerRect.top;
     return {
+      left: offsetX + edgeLeft,
+      top: offsetY + edgeTop,
       width: innerWidth,
-      height: innerHeight,
-      edgeLeft,
-      edgeRight,
-      edgeTop,
-      edgeBottom
+      height: innerHeight
     };
   }
 
@@ -499,7 +500,10 @@
 
   function getOrCreateCardTextSvg(container, role){
     if (!container) return null;
-    let svg = container.querySelector("svg.card-text-svg");
+    const selector = role
+      ? `svg.card-text-svg[data-role="${role}"]`
+      : "svg.card-text-svg";
+    let svg = container.querySelector(selector);
     if (!svg){
       svg = svgEl("svg");
       svg.classList.add("card-text-svg");
@@ -519,26 +523,38 @@
       cardTextResizeObservers.set(card, entry);
     }
     blocks.forEach((block) => {
-      if (!block.source || entry.elements.has(block.source)) return;
-      entry.observer.observe(block.source);
-      entry.elements.add(block.source);
+      if (block.source && !entry.elements.has(block.source)){
+        entry.observer.observe(block.source);
+        entry.elements.add(block.source);
+      }
+      if (block.container && !entry.elements.has(block.container)){
+        entry.observer.observe(block.container);
+        entry.elements.add(block.container);
+      }
     });
   }
 
   function renderTextHostSvg(host, role, options){
-    const svg = getOrCreateCardTextSvg(host, role);
+    const container = options?.container || host;
+    const svg = getOrCreateCardTextSvg(container, role);
     if (!svg) return null;
 
-    const area = getTextHostArea(host);
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = container.clientWidth || containerRect.width;
+    const containerHeight = container.clientHeight || containerRect.height;
+    if (!containerWidth || !containerHeight) return null;
+
+    const area = getTextHostArea(host, container);
     if (!area.width || !area.height) return null;
 
-    svg.style.width = `${area.width}px`;
-    svg.style.height = `${area.height}px`;
-    svg.style.transform = `translate(${area.edgeLeft}px, ${area.edgeTop}px)`;
-    svg.style.transformOrigin = "top left";
-    svg.setAttribute("width", `${area.width}`);
-    svg.setAttribute("height", `${area.height}`);
-    svg.setAttribute("viewBox", `0 0 ${area.width} ${area.height}`);
+    svg.style.position = "absolute";
+    svg.style.left = "0";
+    svg.style.top = "0";
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.setAttribute("width", `${containerWidth}`);
+    svg.setAttribute("height", `${containerHeight}`);
+    svg.setAttribute("viewBox", `0 0 ${containerWidth} ${containerHeight}`);
 
     return { svg, area, options };
   }
@@ -628,18 +644,21 @@
     const blocks = [
       {
         source: card.querySelector('[data-role="card-title"]'),
+        container: card.querySelector(".card-header"),
         role: "card-title-svg",
         paddingPx: 0,
         allowWrap: false
       },
       {
         source: card.querySelector('[data-role="card-text"]'),
+        container: card.querySelector(".card-text"),
         role: "card-text-svg",
         paddingPx: 0,
         allowWrap: true
       },
       {
         source: card.querySelector('[data-role="card-task"]'),
+        container: card.querySelector(".card-task"),
         role: "card-task-svg",
         paddingPx: 0,
         allowWrap: true
@@ -676,10 +695,8 @@
       renderTextGroup(svg, {
         text,
         area: {
-          left: 0,
-          top: 0,
-          right: area.width,
-          bottom: area.height,
+          left: area.left,
+          top: area.top,
           width: area.width,
           height: area.height
         },
