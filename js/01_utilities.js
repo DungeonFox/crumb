@@ -63,11 +63,19 @@
       return root;
     }
     const cardId = getCardIdFromRoot(root);
+    const searchRoot = (root.getRootNode && root.getRootNode().querySelector)
+      ? root.getRootNode()
+      : document;
     if (cardId){
-      const scoped = document.querySelector(`.card-adjacent[data-card-id="${escapeCardSelector(cardId)}"]`);
+      const scoped = searchRoot.querySelector(`.card-adjacent[data-card-id="${escapeCardSelector(cardId)}"]`);
       if (scoped) return scoped;
     }
-    return root.querySelector(".card-adjacent");
+    const container = root.closest ? root.closest(".card-container") : null;
+    if (container){
+      const fallback = container.querySelector(".card-adjacent");
+      if (fallback) return fallback;
+    }
+    return searchRoot.querySelector(".card-adjacent");
   }
 
   function findRoleInPanels(role, cardRoot){

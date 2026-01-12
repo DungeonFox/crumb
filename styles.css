@@ -274,7 +274,7 @@
   .card-control[aria-pressed="true"]{
     box-shadow:0 0 0 1px rgba(255, 232, 168, 0.45);
   }
-  .card-shell .card-adjacent{
+  .card-adjacent{
     position:absolute;
     left:calc(var(--card-right) + 8.4px);
     top:calc(var(--card-top) - 8.4px);
@@ -285,7 +285,7 @@
     flex:0 0 320px;
     max-width:100%;
   }
-  .card-shell[data-controls-position="viewport"] .card-adjacent{
+  .card-shell[data-controls-position="viewport"] + .card-adjacent{
     position:fixed;
   }
   .side-panel{
