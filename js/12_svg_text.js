@@ -250,6 +250,7 @@
     const trackingPx = config.trackingPx || 0;
     const lineHeightPx = Math.max(config.lineHeightPx || config.fontSizePx, 1);
     const align = config.align || "left";
+    const justifyY = config.justifyY || "top";
     const breakLongWords = Boolean(config.breakLongWords);
 
     const area = normalizeArea(config.area || {});
@@ -271,11 +272,21 @@
     const lines = linesRes.lines;
     const placements = [];
 
+    const totalBlockHeight = lineHeightPx * lines.length;
+    const availableHeight = Math.max(0, area.height - paddingPx * 2);
+    const extraHeight = Math.max(0, availableHeight - totalBlockHeight);
+    let yOffset = 0;
+    if (justifyY === "center"){
+      yOffset = extraHeight / 2;
+    } else if (justifyY === "bottom"){
+      yOffset = extraHeight;
+    }
+
     for (let li = 0; li < lines.length; li++){
       const lineKeys = lines[li];
       const m = measureGlyphRunUnits(lineKeys, trackingUnits);
       const lineWidthPx = m.width * scale;
-      const bottom = area.top + paddingPx + lineHeightPx * (li + 1);
+      const bottom = area.top + paddingPx + yOffset + lineHeightPx * (li + 1);
 
       let xStart;
       if (align === "center"){
@@ -444,6 +455,18 @@
       edgeTop,
       edgeBottom
     };
+  }
+
+  function getJustifySetting(host, axis, fallback){
+    if (!host) return fallback;
+    const datasetKey = axis === "x" ? "justifyX" : "justifyY";
+    const datasetValue = host.dataset?.[datasetKey];
+    if (datasetValue && datasetValue.trim() !== "") return datasetValue.trim();
+    const style = window.getComputedStyle(host);
+    const varName = axis === "x" ? "--justify-x" : "--justify-y";
+    const cssValue = style.getPropertyValue(varName);
+    if (cssValue && cssValue.trim() !== "") return cssValue.trim();
+    return fallback;
   }
 
   const cardTextResizeObservers = new WeakMap();
@@ -629,6 +652,9 @@
         ? Math.max(1, Math.floor((area.height - block.paddingPx * 2) / Math.max(lineHeightPx, 1)))
         : 1;
 
+      const justifyX = getJustifySetting(block.source, "x", block.align || "left");
+      const justifyY = getJustifySetting(block.source, "y", "top");
+
       renderTextGroup(svg, {
         text,
         area: {
@@ -644,7 +670,8 @@
         trackingPx,
         paddingPx: block.paddingPx,
         maxLines,
-        align: block.align || "left",
+        align: justifyX || block.align || "left",
+        justifyY,
         allowWrap: block.allowWrap,
         breakLongWords: false,
         fill,
