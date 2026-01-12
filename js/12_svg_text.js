@@ -249,7 +249,8 @@
     const paddingPx = Math.max(0, config.paddingPx || 0);
     const trackingPx = config.trackingPx || 0;
     const lineHeightPx = Math.max(config.lineHeightPx || config.fontSizePx, 1);
-    const align = config.align || "left";
+    const justifyX = config.justifyX || config.align || "left";
+    const justifyY = config.justifyY || "baseline";
     const breakLongWords = Boolean(config.breakLongWords);
 
     const area = normalizeArea(config.area || {});
@@ -271,16 +272,25 @@
     const lines = linesRes.lines;
     const placements = [];
 
+    const lineBlockHeightPx = lineHeightPx * lines.length;
+    const availableHeightPx = Math.max(0, area.height - 2 * paddingPx);
+    let baselineStart = area.top + paddingPx + lineHeightPx;
+    if (justifyY === "center"){
+      baselineStart += (availableHeightPx - lineBlockHeightPx) / 2;
+    } else if (justifyY === "bottom"){
+      baselineStart += (availableHeightPx - lineBlockHeightPx);
+    }
+
     for (let li = 0; li < lines.length; li++){
       const lineKeys = lines[li];
       const m = measureGlyphRunUnits(lineKeys, trackingUnits);
       const lineWidthPx = m.width * scale;
-      const bottom = area.top + paddingPx + lineHeightPx * (li + 1);
+      const bottom = baselineStart + lineHeightPx * li;
 
       let xStart;
-      if (align === "center"){
+      if (justifyX === "center"){
         xStart = area.left + (area.width - lineWidthPx) / 2;
-      } else if (align === "right"){
+      } else if (justifyX === "right"){
         xStart = area.left + area.width - paddingPx - lineWidthPx;
       } else {
         xStart = area.left + paddingPx;
@@ -395,7 +405,8 @@
       trackingPx,
       paddingPx,
       maxLines,
-      align: options.align || "center",
+      justifyX: options.justifyX || options.align || "center",
+      justifyY: options.justifyY || "baseline",
       allowWrap: Boolean(options.allowWrap),
       breakLongWords: false,
       fill,
@@ -414,6 +425,39 @@
     const parsed = Number.parseFloat(raw);
     if (Number.isFinite(parsed)) return parsed;
     return fontSizePx * 1.2;
+  }
+
+  function normalizeJustifyX(value){
+    if (!value) return null;
+    const raw = String(value).trim().toLowerCase();
+    if (raw === "left" || raw === "center" || raw === "right") return raw;
+    if (raw === "start" || raw === "flex-start") return "left";
+    if (raw === "end" || raw === "flex-end") return "right";
+    return null;
+  }
+
+  function normalizeJustifyY(value){
+    if (!value) return null;
+    const raw = String(value).trim().toLowerCase();
+    if (raw === "top" || raw === "center" || raw === "bottom" || raw === "baseline") return raw;
+    if (raw === "start" || raw === "flex-start") return "top";
+    if (raw === "end" || raw === "flex-end") return "bottom";
+    if (raw === "middle") return "center";
+    return null;
+  }
+
+  function resolveJustify(host, style){
+    const justifyX = normalizeJustifyX(host?.dataset?.justifyX)
+      || normalizeJustifyX(host?.dataset?.uiAlign)
+      || normalizeJustifyX(style?.textAlign)
+      || normalizeJustifyX(style?.justifyContent)
+      || "left";
+    const justifyY = normalizeJustifyY(host?.dataset?.justifyY)
+      || normalizeJustifyY(style?.alignItems)
+      || normalizeJustifyY(style?.verticalAlign)
+      || normalizeJustifyY(style?.justifyContent)
+      || "baseline";
+    return { justifyX, justifyY };
   }
 
   function getEdgePx(style, varName, fallback){
@@ -542,8 +586,7 @@
         parsePx(hostStyle.paddingTop, 0),
         parsePx(hostStyle.paddingBottom, 0)
       );
-      const align = host.dataset.uiAlign
-        || ((host.tagName === "BUTTON" || host.classList.contains("card-control") || host.classList.contains("card-header__status")) ? "center" : "left");
+      const { justifyX, justifyY } = resolveJustify(host, hostStyle);
       const fontSizePx = parsePx(sourceStyle.fontSize, 14);
       const lineHeightPx = getLineHeightPx(sourceStyle, fontSizePx);
       const trackingPx = parsePx(sourceStyle.letterSpacing, 0);
@@ -566,7 +609,8 @@
         trackingPx,
         paddingPx,
         maxLines,
-        align,
+        justifyX,
+        justifyY,
         allowWrap,
         breakLongWords: false,
         fill,
@@ -586,22 +630,19 @@
         source: card.querySelector('[data-role="card-title"]'),
         role: "card-title-svg",
         paddingPx: 0,
-        allowWrap: false,
-        align: "left"
+        allowWrap: false
       },
       {
         source: card.querySelector('[data-role="card-text"]'),
         role: "card-text-svg",
         paddingPx: 0,
-        allowWrap: true,
-        align: "left"
+        allowWrap: true
       },
       {
         source: card.querySelector('[data-role="card-task"]'),
         role: "card-task-svg",
         paddingPx: 0,
-        allowWrap: true,
-        align: "left"
+        allowWrap: true
       }
     ];
 
@@ -629,6 +670,9 @@
         ? Math.max(1, Math.floor((area.height - block.paddingPx * 2) / Math.max(lineHeightPx, 1)))
         : 1;
 
+      const hostStyle = window.getComputedStyle(block.source);
+      const { justifyX, justifyY } = resolveJustify(block.source, hostStyle);
+
       renderTextGroup(svg, {
         text,
         area: {
@@ -644,7 +688,8 @@
         trackingPx,
         paddingPx: block.paddingPx,
         maxLines,
-        align: block.align || "left",
+        justifyX,
+        justifyY,
         allowWrap: block.allowWrap,
         breakLongWords: false,
         fill,
