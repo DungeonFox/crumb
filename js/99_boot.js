@@ -298,6 +298,16 @@
     });
   }
 
+  const footer = card.querySelector(".card-footer");
+  if (footer){
+    const layoutStyle = window.getComputedStyle(layoutTarget);
+    const baseFooterH = Number.parseFloat(layoutStyle.getPropertyValue("--footer-h")) || 0;
+    const renderedFooterH = footer.getBoundingClientRect().height;
+    if (renderedFooterH > baseFooterH){
+      layoutTarget.style.setProperty("--footer-h", `${renderedFooterH}px`);
+    }
+  }
+
   const baseScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
   layoutTarget.style.setProperty("--card-padding", `${18 * baseScale}px`);
   layoutTarget.style.setProperty("--header-pad-x", `${14 * baseScale}px`);
